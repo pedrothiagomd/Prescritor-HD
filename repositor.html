@@ -3,557 +3,791 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reposição Eletrolítica — Calculadora Clínica FAAMA</title>
+<title>Reposicao Eletrolitica &mdash; Calculadora Clinica</title>
 <style>
-:root{
-  --navy:#0a1628;--navy2:#0f2040;--navy3:#091220;
-  --teal:#00c9b1;--teal2:#00a896;--amber:#f4a535;
-  --red:#e8463a;--green:#2ecc8a;--blue:#4a9eff;--purple:#9b7fe8;
-  --white:#e8edf4;--gray:#7a8fa8;
-  --border:rgba(255,255,255,0.07);--card:rgba(255,255,255,0.04);--card2:rgba(255,255,255,0.07);
-  --fs: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-  --fm: ui-monospace,'Cascadia Code','SF Mono','Consolas','Courier New',monospace;
-}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:var(--fs);background:var(--navy);color:var(--white);min-height:100vh}
-.header{background:var(--navy2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
-.hico{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.header h1{font-family:var(--fm);font-size:15px;font-weight:600;letter-spacing:-.02em}
-.header p{font-size:11px;color:var(--gray);margin-top:1px}
-.nav{background:var(--navy3);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 20px}
-.nav::-webkit-scrollbar{display:none}
-.ntab{padding:12px 20px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent;color:var(--gray);transition:all .15s;display:flex;align-items:center;gap:7px;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--fs)}
-.ntab:hover{color:var(--white)}
-.ntab.on{color:var(--white);border-bottom-color:var(--teal)}
-.ntab .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+body{padding:1.5rem;font-family:'DM Sans',system-ui,sans-serif;background:#f4f3f0;color:#1a1a18;font-size:14px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
+.subtitle{font-size:12px;color:#888;margin-bottom:1.25rem;letter-spacing:.02em}
+.banner{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;color:#1e40af}
+.card{background:#fff;border:1px solid #e8e8e5;border-radius:10px;padding:1rem 1.2rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:11px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-bottom:9px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#777;font-weight:500}
+.field input,.field select{font-size:13px;padding:6px 9px;border-radius:6px;border:1px solid #ddd;background:#fff;color:#1a1a18;width:100%;outline:none;font-family:inherit;transition:border .12s;-webkit-appearance:none;appearance:none}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23777' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}
+.field input:focus,.field select:focus{border-color:#555}
+/* Tab row */
+.tab-row{display:flex;gap:0;border-bottom:1px solid #e8e8e5;margin-bottom:1rem}
+.tab-btn{font-size:13px;font-weight:500;padding:8px 22px;border:none;background:none;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:#1a1a18}
+.tab-btn.on-k{color:#92400e;border-bottom-color:#f59e0b}
+.tab-btn.on-na{color:#1e40af;border-bottom-color:#3b82f6}
+.tab-btn.on-mg{color:#166534;border-bottom-color:#22c55e}
+.tab-btn.on-ca{color:#6b21a8;border-bottom-color:#a855f7}
+/* Panels */
 .panel{display:none}.panel.on{display:block}
-.container{max-width:860px;margin:0 auto;padding:24px 20px 48px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px}
-.card-info{background:rgba(0,0,0,0.15);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px}
-.card-hab{background:rgba(244,165,53,0.07);border:1px solid rgba(244,165,53,0.25);border-radius:10px;padding:13px 16px;margin-bottom:14px}
-.sec{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);font-family:var(--fm);margin-bottom:12px}
-.sec-gray{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);font-family:var(--fm);margin-bottom:8px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
-.field label{font-size:11px;font-weight:500;color:var(--gray);display:block;margin-bottom:4px;letter-spacing:.02em}
-.field input,.field select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--white);font-family:var(--fs);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
-.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a8fa8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-color:rgba(255,255,255,0.05);padding-right:28px}
-.field input:focus,.field select:focus{border-color:rgba(0,201,177,.45);background:rgba(0,201,177,.04)}
-.ref-table{width:100%;border-collapse:collapse;font-size:12px}
-.ref-table th{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);padding:5px 8px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--fm)}
-.ref-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--white)}
-.ref-table tr:last-child td{border-bottom:none}
-.ref-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
-.ref-table td strong{color:var(--teal);font-family:var(--fm)}
-.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;font-family:var(--fm);white-space:nowrap}
-.bc{background:rgba(74,158,255,.15);color:#7ec6ff;border:1px solid rgba(74,158,255,.2)}
-.bp{background:rgba(46,204,138,.15);color:#7eeabb;border:1px solid rgba(46,204,138,.2)}
-.bh{background:rgba(244,165,53,.15);color:#ffc76a;border:1px solid rgba(244,165,53,.25)}
-.bv{background:rgba(155,127,232,.15);color:#c4aaff;border:1px solid rgba(155,127,232,.2)}
-.mtabs{display:flex;gap:6px;margin-bottom:12px}
-.mt{flex:1;padding:8px 6px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--gray);transition:all .15s;font-family:var(--fs)}
-.mt:hover{background:var(--card2);color:var(--white)}
-.mt.on{background:rgba(0,201,177,.1);border-color:rgba(0,201,177,.35);color:var(--teal)}
-.mp{display:none}.mp.on{display:block}
-.mode-hint{font-size:12px;color:var(--gray);margin-bottom:10px;line-height:1.5}
-.btn{width:100%;padding:11px;background:var(--teal);color:var(--navy);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:2px;font-family:var(--fs);transition:background .15s,transform .1s}
-.btn:hover{background:var(--teal2)}
-.btn:active{transform:scale(.99)}
-.res-area{margin-top:14px}
-.rcard{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;animation:fadeIn .2s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.rtitle{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);font-family:var(--fm);margin-bottom:12px}
-.ng{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.nb{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:8px;padding:11px;text-align:center}
-.nbv{font-size:20px;font-weight:600;font-family:var(--fm);color:var(--teal);line-height:1}
-.nbl{font-size:11px;color:var(--gray);margin-top:3px}
-.drow{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+/* Mode buttons */
+.mode-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.mode-btn{font-size:12px;font-weight:500;padding:5px 16px;border-radius:6px;border:1px solid #ddd;background:#fff;color:#555;cursor:pointer;font-family:inherit;transition:all .12s}
+.mode-btn:hover{border-color:#999;background:#f8f8f6}
+.mode-btn.sel{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.mode-panel{display:none}.mode-panel.on{display:block}
+/* Calc button */
+.btn-calc{font-size:13px;font-weight:500;padding:8px 24px;border-radius:7px;border:1px solid #1a1a18;background:#1a1a18;color:#fff;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .12s}
+.btn-calc:hover{background:#333}
+/* Rec boxes — same as HD prescriber */
+.rec-box{border-radius:8px;padding:10px 13px;margin-top:8px;border:1px solid}
+.rec-box.blue{background:#eff6ff;border-color:#93c5fd;color:#1e40af}
+.rec-box.green{background:#f0fdf4;border-color:#86efac;color:#166534}
+.rec-box.amber{background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.rec-box.red{background:#fff5f5;border-color:#fca5a5;color:#991b1b}
+.rec-box.purple{background:#faf5ff;border-color:#c4b5fd;color:#6b21a8}
+.rec-box.slate{background:#f8fafc;border-color:#cbd5e1;color:#334155}
+.rec-box.teal{background:#f0fdfa;border-color:#5eead4;color:#0f766e}
+.rec-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;opacity:.8}
+.rec-val{font-size:15px;font-weight:600;font-family:monospace;margin-bottom:3px}
+.rec-detail{font-size:11px;line-height:1.75;opacity:.85}
+/* Nums grid */
+.nums-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.num-box{border-radius:8px;padding:10px 12px;border:1px solid #e8e8e5;background:#fafaf8;text-align:center}
+.num-val{font-size:20px;font-weight:600;font-family:monospace;color:#1a1a18}
+.num-lbl{font-size:11px;color:#888;margin-top:3px}
+/* Data rows */
+.drow{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #f0f0ed;font-size:13px;gap:12px}
 .drow:last-child{border-bottom:none}
-.dk{color:var(--gray)}.dv{color:var(--white);font-weight:500;text-align:right}.dv.hl{color:var(--teal);font-family:var(--fm)}
-.sub{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:7px;padding:10px 13px;margin-top:9px}
-.sub .rtitle{margin-bottom:7px}
-.al{font-size:12px;padding:9px 12px;border-radius:7px;margin-top:8px;border-left:3px solid;line-height:1.5}
-.al-d{background:rgba(232,70,58,.1);border-color:var(--red);color:#ffb3ae}
-.al-w{background:rgba(244,165,53,.1);border-color:var(--amber);color:#ffd48a}
-.al-i{background:rgba(74,158,255,.1);border-color:var(--blue);color:#a8d1ff}
-.al-s{background:rgba(46,204,138,.1);border-color:var(--green);color:#90f0c4}
-.sep{border:none;border-top:1px solid var(--border);margin:14px 0}
-@media(max-width:600px){.g3{grid-template-columns:1fr 1fr}.ng{grid-template-columns:1fr 1fr}.ng .nb:last-child{grid-column:1/-1}.container{padding:16px 14px 40px}.header{padding:13px 16px}}
+.dk{color:#777;flex-shrink:0}
+.dv{font-weight:500;font-family:monospace;text-align:right}
+/* Ref table */
+.ref-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px}
+.ref-table th{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#888;padding:5px 8px;border-bottom:1px solid #e8e8e5;text-align:left;font-family:monospace}
+.ref-table td{padding:5px 8px;border-bottom:1px solid #f0f0ed;color:#1a1a18;vertical-align:middle}
+.ref-table tr:last-child td{border-bottom:none}
+.ref-table tr:nth-child(even) td{background:#fafaf8}
+.ref-table td strong{color:#1a1a18;font-family:monospace}
+/* Badges */
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;font-family:monospace;display:inline-block}
+.badge-cvc{background:#eff6ff;color:#1e40af;border:1px solid #93c5fd}
+.badge-pvp{background:#f0fdf4;color:#166534;border:1px solid #86efac}
+.badge-vo{background:#faf5ff;color:#6b21a8;border:1px solid #c4b5fd}
+.badge-hab{background:#fffbeb;color:#92400e;border:1px solid #fcd34d}
+/* Alert boxes */
+.alert-box{border-radius:7px;padding:9px 12px;margin-top:8px;border-left:3px solid;font-size:12px;line-height:1.6}
+.alert-d{background:#fff5f5;border-color:#f87171;color:#991b1b}
+.alert-w{background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.alert-i{background:#eff6ff;border-color:#93c5fd;color:#1e40af}
+.alert-s{background:#f0fdf4;border-color:#86efac;color:#166534}
+/* Section divider */
+.sec-divider{font-size:10.5px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin:13px 0 8px;padding-bottom:4px;border-bottom:1px solid #eee}
+/* HAB banner */
+.hab-card{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;margin-bottom:.85rem}
+.hab-title{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#92400e;margin-bottom:6px}
+.hab-val{font-size:14px;font-weight:600;font-family:monospace;color:#78350f;margin-bottom:3px}
+.hab-detail{font-size:11px;color:#92400e;line-height:1.7}
+/* Result area separator */
+.res-area{margin-top:10px}
+.res-block{margin-bottom:0}
+@media(max-width:600px){
+  .row3{grid-template-columns:1fr 1fr}
+  .nums-grid{grid-template-columns:1fr 1fr}
+  .tab-btn{padding:8px 13px;font-size:12px}
+}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="header">
-  <div class="hico">⚗️</div>
-  <div><h1>Reposição Eletrolítica</h1><p>Calculadora clínica — K⁺ · Na⁺ · Mg²⁺ · Ca²⁺ · Protocolo FAAMA</p></div>
+<div style="margin-bottom:1rem">
+  <h1>Reposicao Eletrolitica</h1>
+  <div class="subtitle">FAAMA &middot; K+ &middot; Na+ &middot; Mg2+ &middot; Ca2+ &middot; Baseado em ESE/ESICM, StatPearls 2024, NHS 2024, Merck Manual 2025</div>
 </div>
 
-<nav class="nav">
-  <button class="ntab on" onclick="tab('k',this)"><span class="dot" style="background:#f4a535"></span>Potássio K⁺</button>
-  <button class="ntab" onclick="tab('na',this)"><span class="dot" style="background:#4a9eff"></span>Sódio Na⁺</button>
-  <button class="ntab" onclick="tab('mg',this)"><span class="dot" style="background:#2ecc8a"></span>Magnésio Mg²⁺</button>
-  <button class="ntab" onclick="tab('ca',this)"><span class="dot" style="background:#9b7fe8"></span>Cálcio Ca²⁺</button>
-</nav>
+<div class="banner">Selecione o eletrólito, preencha os dados e clique em <strong>Calcular</strong>. A prescrição é gerada automaticamente com base nas diretrizes vigentes.</div>
 
-<!-- ══ POTÁSSIO ══ -->
-<div id="p-k" class="panel on"><div class="container">
-  <div class="card-info">
-    <div class="sec-gray">📦 Apresentações — Brasil</div>
-    <table class="ref-table">
-      <tr><th>Produto</th><th>Concentração</th><th>Volume</th><th>mEq / unidade</th><th>Via</th></tr>
-      <tr><td>KCl 19,1%</td><td>2,5 mEq/mL</td><td>10 mL</td><td><strong>25 mEq/amp</strong></td><td><span class="badge bc">CVC</span></td></tr>
-      <tr><td>KCl 10%</td><td>1,34 mEq/mL</td><td>10 mL</td><td><strong>13,4 mEq/amp</strong></td><td><span class="badge bc">CVC</span></td></tr>
-      <tr><td>Bolsa SF + KCl pronto uso</td><td>20 mEq/100mL <em>(padrão PVP)</em></td><td>100 mL</td><td><strong>20 mEq/bolsa</strong></td><td><span class="badge bp">PVP OK</span></td></tr>
-      <tr><td>Bolsa SF + KCl pronto uso</td><td>40 mEq/100mL <em>(máx. PVP absoluto)</em></td><td>100 mL</td><td><strong>40 mEq/bolsa</strong></td><td><span class="badge bc">CVC preferível</span></td></tr>
-      <tr><td>KCl Xarope 6%</td><td>8 mEq/5mL</td><td>frasco</td><td><strong>8 mEq/dose</strong></td><td><span class="badge bv">VO</span></td></tr>
-      <tr><td>Slow-K® comprimido</td><td>8 mEq/cp</td><td>—</td><td><strong>8 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-      <tr><td>Kaleorid® LP comprimido</td><td>20 mEq/cp</td><td>—</td><td><strong>20 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-    </table>
-    <div style="font-size:11px;color:var(--gray);margin-top:5px">PVP: 20 mEq/100mL = padrão seguro | 40 mEq/100mL = limite absoluto (flebite e dor acima disso)</div>
-  </div>
+<!-- TABS -->
+<div class="tab-row">
+  <button class="tab-btn on-k" id="tab-k" onclick="showTab('k')">&#9889; Potassio K+</button>
+  <button class="tab-btn" id="tab-na" onclick="showTab('na')">&#128167; Sodio Na+</button>
+  <button class="tab-btn" id="tab-mg" onclick="showTab('mg')">&#128267; Magnesio Mg2+</button>
+  <button class="tab-btn" id="tab-ca" onclick="showTab('ca')">&#129406; Calcio Ca2+</button>
+</div>
+
+<!-- ================================================================
+     POTASSIO
+     ================================================================ -->
+<div id="p-k" class="panel on">
+
   <div class="card">
-    <div class="sec">Calculadora</div>
-    <div class="g3">
-      <div class="field"><label>Peso (kg)</label><input id="kp" type="number" placeholder="70" step="0.1"></div>
-      <div class="field"><label>K⁺ atual (mEq/L)</label><input id="ka" type="number" placeholder="3.0" step="0.1"></div>
-      <div class="field"><label>Função renal</label>
-        <select id="kr"><option value="n">Normal</option><option value="a">Alterada (TFG 30–60)</option><option value="g">Grave (TFG &lt;30 / diálise)</option></select>
-      </div>
+    <div class="card-title">Apresentacoes disponíveis no Brasil</div>
+    <table class="ref-table">
+      <tr><th>Produto</th><th>Concentracao</th><th>Volume</th><th>mEq / unidade</th><th>Via</th></tr>
+      <tr><td>KCl 19,1%</td><td>2,5 mEq/mL</td><td>10 mL</td><td><strong>25 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
+      <tr><td>KCl 10%</td><td>1,34 mEq/mL</td><td>10 mL</td><td><strong>13,4 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
+      <tr><td>Bolsa SF + KCl pronto uso</td><td>20 mEq/100mL</td><td>100 mL</td><td><strong>20 mEq/bolsa</strong></td><td><span class="badge badge-pvp">PVP</span></td></tr>
+      <tr><td>KCl Xarope 6%</td><td>8 mEq/5mL</td><td>frasco</td><td><strong>8 mEq/dose</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Slow-K comprimido</td><td>8 mEq/cp</td><td>&mdash;</td><td><strong>8 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Kaleorid LP comprimido</td><td>20 mEq/cp</td><td>&mdash;</td><td><strong>20 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Calculadora</div>
+    <div class="row3">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="kp" placeholder="70" step="0.1" min="20" max="200"></div>
+      <div class="field"><label>K+ atual (mEq/L)</label><input type="number" id="ka" placeholder="3.0" step="0.1"></div>
+      <div class="field"><label>K+ alvo (mEq/L)</label><input type="number" id="kalvo" placeholder="4.0" step="0.1" value="4.0"></div>
     </div>
-    <div class="g2">
-      <div class="field"><label>Apresentação / Via</label>
+    <div class="row2">
+      <div class="field"><label>Apresentacao / Via</label>
         <select id="kv">
-          <option value="cvc25">EV CVC — KCl 19,1% (25 mEq/amp)</option>
-          <option value="pvp20">EV PVP — Bolsa 20 mEq/100mL (padrão)</option>
-          <option value="vox">VO — KCl Xarope 6% (8 mEq/5mL)</option>
-          <option value="vos">VO — Slow-K® (8 mEq/cp)</option>
-          <option value="vok">VO — Kaleorid® LP (20 mEq/cp)</option>
+          <option value="cvc25">EV CVC &mdash; KCl 19,1% (25 mEq/amp)</option>
+          <option value="pvp20">EV PVP &mdash; Bolsa 20 mEq/100mL</option>
+          <option value="vox">VO &mdash; Xarope 6% (8 mEq/5mL)</option>
+          <option value="vos">VO &mdash; Slow-K (8 mEq/cp)</option>
+          <option value="vok">VO &mdash; Kaleorid LP (20 mEq/cp)</option>
         </select>
       </div>
-      <div class="field"><label>K⁺ alvo (mEq/L)</label><input id="kalvo" type="number" placeholder="4.0" step="0.1" value="4.0"></div>
+      <div class="field"><label>Funcao renal</label>
+        <select id="kr">
+          <option value="n">Normal</option>
+          <option value="a">Alterada (TFG 30&ndash;60)</option>
+          <option value="g">Grave (TFG &lt;30 / dialise)</option>
+        </select>
+      </div>
     </div>
-    <button class="btn" onclick="calcK()">Calcular reposição ↗</button>
+    <button class="btn-calc" onclick="calcK()">Calcular reposicao</button>
     <div id="r-k" class="res-area"></div>
   </div>
-</div></div>
 
-<!-- ══ SÓDIO ══ -->
-<div id="p-na" class="panel"><div class="container">
-  <div class="card-hab">
-    <div style="font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-family:var(--fm)">🏥 Solução Institucional HAB</div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
-      <div style="font-size:13px;color:var(--white)">SF 0,9% <strong style="color:var(--amber)">390mL</strong> + <strong style="color:var(--amber)">11 ampolas</strong> NaCl 10% (17 mEq/amp) = <strong style="color:var(--amber)">500mL / 247 mEq / 494 mEq/L (~2,9%)</strong></div>
-      <div style="font-family:var(--fm);font-size:11px;color:rgba(244,165,53,.7);text-align:right;line-height:1.7">Na SF: 60 mEq<br>Na 11amp: 187 mEq<br>Total: 247 mEq</div>
-    </div>
-    <div style="font-size:11px;color:rgba(244,165,53,.7);margin-top:6px">⚠️ ~NaCl 3% (513 mEq/L) — EXCLUSIVAMENTE via CVC | Taxa máx. segura: individualizada pelo peso (calculada abaixo)</div>
+</div>
+
+<!-- ================================================================
+     SODIO
+     ================================================================ -->
+<div id="p-na" class="panel">
+
+  <div class="hab-card">
+    <div class="hab-title">&#127973; Solucao Institucional HAB &mdash; Protocolo do servico</div>
+    <div class="hab-val">SF 0,9% 390mL + 11 amp NaCl 10% = 500mL &mdash; 494 mEq/L (~2,9%) &mdash; 247 mEq/bolsa</div>
+    <div class="hab-detail">Na do SF (390mL): 60 mEq &nbsp;|&nbsp; Na das 11 amp (17 mEq/amp): 187 mEq &nbsp;|&nbsp; Total: 247 mEq<br>Equivale ao NaCl 3% (513 mEq/L) &mdash; EXCLUSIVAMENTE via CVC</div>
   </div>
-  <div class="card-info">
-    <div class="sec-gray">📦 Apresentações — Brasil</div>
-    <table class="ref-table">
-      <tr><th>Solução</th><th>mEq/L</th><th>Volume/amp</th><th>mEq/unidade</th><th>Via</th></tr>
-      <tr><td><strong>HAB</strong> — SF 390mL + 11amp NaCl 10%</td><td><strong>494</strong></td><td>500 mL</td><td><strong>247 mEq/bolsa</strong></td><td><span class="badge bh">HAB — CVC</span></td></tr>
-      <tr><td>NaCl 20% (hipertônico)</td><td>3.400</td><td>10 mL (amp)</td><td><strong>34 mEq/amp</strong></td><td><span class="badge bc">CVC diluído</span></td></tr>
-      <tr><td>NaCl 10%</td><td>1.700</td><td>10 mL (amp)</td><td><strong>17 mEq/amp</strong></td><td><span class="badge bc">CVC diluído</span></td></tr>
-      <tr><td>NaCl 3%* (farmácia hospitalar)</td><td>513</td><td>250 mL</td><td><strong>128 mEq/bolsa</strong></td><td><span class="badge bc">CVC</span></td></tr>
-      <tr><td>SF 0,9%</td><td>154</td><td>500 mL / 1000 mL</td><td><strong>77 / 154 mEq</strong></td><td><span class="badge bp">PVP OK</span></td></tr>
-      <tr><td>Ringer Lactato</td><td>130</td><td>500 mL</td><td><strong>65 mEq/bolsa</strong></td><td><span class="badge bp">PVP OK</span></td></tr>
-    </table>
-    <div style="font-size:11px;color:var(--gray);margin-top:5px">*NaCl 3%: preparado em farmácia hospitalar — ex: 150mL NaCl 20% + AD q.s.p. 250mL ≈ 513 mEq/L</div>
-  </div>
+
   <div class="card">
-    <div class="sec">Calculadora — Fórmula de Adrogué-Madias</div>
-    <div class="g3">
-      <div class="field"><label>Peso (kg)</label><input id="nap" type="number" placeholder="70" step="0.1"></div>
-      <div class="field"><label>Na⁺ atual (mEq/L)</label><input id="naa" type="number" placeholder="118" step="0.1"></div>
-      <div class="field"><label>Na⁺ alvo (mEq/L)</label><input id="naalvo" type="number" placeholder="126" step="0.1"></div>
+    <div class="card-title">Apresentacoes disponíveis no Brasil</div>
+    <table class="ref-table">
+      <tr><th>Solucao</th><th>mEq/L</th><th>Volume</th><th>mEq / unidade</th><th>Via</th></tr>
+      <tr><td><strong>HAB</strong> &mdash; SF 390mL + 11amp NaCl 10%</td><td><strong>494</strong></td><td>500 mL</td><td><strong>247 mEq/bolsa</strong></td><td><span class="badge badge-hab">HAB &mdash; CVC</span></td></tr>
+      <tr><td>NaCl 20%</td><td>3.400</td><td>10 mL (amp)</td><td><strong>34 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
+      <tr><td>NaCl 10%</td><td>1.700</td><td>10 mL (amp)</td><td><strong>17 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC dil.</span></td></tr>
+      <tr><td>NaCl 3% (farmacia)</td><td>513</td><td>250 mL</td><td><strong>128 mEq/bolsa</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
+      <tr><td>SF 0,9%</td><td>154</td><td>500 / 1000 mL</td><td><strong>77 / 154 mEq</strong></td><td><span class="badge badge-pvp">PVP OK</span></td></tr>
+      <tr><td>Ringer Lactato</td><td>130</td><td>500 mL</td><td><strong>65 mEq/bolsa</strong></td><td><span class="badge badge-pvp">PVP OK</span></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Calculadora &mdash; Formula de Adrogue-Madias</div>
+    <div class="row3">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="nap" placeholder="70" step="0.1"></div>
+      <div class="field"><label>Na+ atual (mEq/L)</label><input type="number" id="naa" placeholder="118" step="0.1"></div>
+      <div class="field"><label>Na+ alvo (mEq/L)</label><input type="number" id="naalvo" placeholder="126" step="0.1"></div>
     </div>
-    <div class="g2">
+    <div class="row2">
       <div class="field"><label>Sexo / Idade (TBW)</label>
-        <select id="natbw"><option value="0.6">Homem adulto (60%)</option><option value="0.5">Mulher adulta / Homem idoso (50%)</option><option value="0.45">Mulher idosa (45%)</option></select>
+        <select id="natbw">
+          <option value="0.6">Homem adulto (60%)</option>
+          <option value="0.5">Mulher adulta / Homem idoso (50%)</option>
+          <option value="0.45">Mulher idosa (45%)</option>
+        </select>
       </div>
-      <div class="field"><label>Solução</label>
+      <div class="field"><label>Solucao</label>
         <select id="nasol">
-          <option value="494">🏥 HAB — SF 390mL + 11amp NaCl 10% (494 mEq/L)</option>
-          <option value="513">NaCl 3% hipertônico (513 mEq/L)</option>
+          <option value="494">HAB &mdash; SF 390mL + 11amp NaCl 10% (494 mEq/L)</option>
+          <option value="513">NaCl 3% hipertonico (513 mEq/L)</option>
           <option value="154">SF 0,9% (154 mEq/L)</option>
-          <option value="130">Ringer Lactato (130 mEq/L)</option>
           <option value="77">SF 0,45% (77 mEq/L)</option>
+          <option value="130">Ringer Lactato (130 mEq/L)</option>
         </select>
       </div>
     </div>
-    <div class="g2">
-      <div class="field"><label>Limite de segurança (risco ODS)</label>
+    <div class="row2">
+      <div class="field"><label>Limite de seguranca (ODS)</label>
         <select id="nalim">
-          <option value="8">Padrão — máx. 8 mEq/L / 24h</option>
-          <option value="6">Alto risco (alcoolismo, cirrose, K⁺↓, Na&lt;105) — máx. 6/24h</option>
-          <option value="10">Sintomático grave (vigilância) — máx. 10/24h</option>
+          <option value="8">Padrao &mdash; max. 8 mEq/L/24h (painel americano)</option>
+          <option value="6">Alto risco (alcoolismo, cirrose, K+ baixo, Na&lt;105) &mdash; max. 6/24h</option>
+          <option value="10">Sintomatico grave (vigilancia) &mdash; max. 10/24h (ESE/ESICM)</option>
         </select>
       </div>
-      <div class="field"><label>Via</label>
+      <div class="field"><label>Via de acesso</label>
         <select id="navia"><option value="cvc">CVC</option><option value="pvp">PVP (SF 0,9% / RL apenas)</option></select>
       </div>
     </div>
-    <hr class="sep">
-    <div class="sec-gray">Modo de cálculo</div>
-    <div class="mtabs">
-      <button class="mt on" onclick="setNaModo('24h',this)">⏱ Em 24h</button>
-      <button class="mt" onclick="setNaModo('vel',this)">⚡ Velocidade → Tempo</button>
-      <button class="mt" onclick="setNaModo('vol',this)">💧 Volume → ΔNa</button>
+
+    <div class="sec-divider">Modo de calculo</div>
+    <div class="mode-row">
+      <button class="mode-btn sel" id="mb-24h" onclick="setNaModo('24h',this)">Em 24h</button>
+      <button class="mode-btn" id="mb-vel" onclick="setNaModo('vel',this)">Velocidade &rarr; Tempo</button>
+      <button class="mode-btn" id="mb-vol" onclick="setNaModo('vol',this)">Volume &rarr; Delta-Na</button>
     </div>
-    <div id="nm-24h" class="mp on"><p class="mode-hint">Distribui a correção uniformemente em 24h respeitando o limite de segurança.</p></div>
-    <div id="nm-vel" class="mp">
-      <p class="mode-hint">Defina a velocidade desejada — o sistema calcula por <strong style="color:var(--teal)">quanto tempo infundir</strong> sem ultrapassar o limite diário.</p>
-      <div class="g2">
-        <div class="field"><label>Velocidade (mL/h)</label><input id="namlh" type="number" placeholder="ex: 30" step="1" min="5"></div>
-        <div class="field"><label>Referência rápida</label>
-          <select onchange="this.value&&(document.getElementById('namlh').value=this.value)">
-            <option value="">— selecionar —</option>
-            <option value="20">HAB a 20 mL/h</option><option value="30">HAB a 30 mL/h</option>
-            <option value="40">HAB a 40 mL/h</option><option value="50">HAB a 50 mL/h</option>
-            <option value="100">SF 0,9% a 100 mL/h</option><option value="125">SF 0,9% a 125 mL/h</option>
+
+    <div id="nm-24h" class="mode-panel on">
+      <p style="font-size:12px;color:#888">Distribui a correcao uniformemente em 24h respeitando o limite de seguranca.</p>
+    </div>
+    <div id="nm-vel" class="mode-panel">
+      <p style="font-size:12px;color:#888;margin-bottom:8px">Defina a velocidade desejada &mdash; o sistema calcula por <strong>quanto tempo infundir</strong> sem ultrapassar o limite diario.</p>
+      <div class="row2">
+        <div class="field"><label>Velocidade (mL/h)</label><input type="number" id="namlh" placeholder="ex: 30" step="1" min="5"></div>
+        <div class="field"><label>Referencia rapida</label>
+          <select onchange="if(this.value){document.getElementById('namlh').value=this.value}">
+            <option value="">-- selecionar --</option>
+            <option value="20">HAB a 20 mL/h</option>
+            <option value="30">HAB a 30 mL/h</option>
+            <option value="40">HAB a 40 mL/h</option>
+            <option value="50">HAB a 50 mL/h</option>
+            <option value="100">SF 0,9% a 100 mL/h</option>
+            <option value="125">SF 0,9% a 125 mL/h</option>
           </select>
         </div>
       </div>
     </div>
-    <div id="nm-vol" class="mp">
-      <p class="mode-hint">Informe o volume disponível (ex: 1 bolsa HAB = 500mL) e o tempo — veja quanto o Na⁺ vai subir.</p>
-      <div class="g2">
-        <div class="field"><label>Volume a infundir (mL)</label><input id="navol" type="number" placeholder="500" step="50"></div>
-        <div class="field"><label>Tempo de infusão (h)</label><input id="nath" type="number" placeholder="6" step="0.5"></div>
+    <div id="nm-vol" class="mode-panel">
+      <p style="font-size:12px;color:#888;margin-bottom:8px">Informe o volume disponivel (ex: 1 bolsa HAB = 500mL) e o tempo &mdash; veja quanto o Na+ vai subir.</p>
+      <div class="row2">
+        <div class="field"><label>Volume a infundir (mL)</label><input type="number" id="navol" placeholder="500" step="50"></div>
+        <div class="field"><label>Tempo de infusao (h)</label><input type="number" id="nath" placeholder="6" step="0.5"></div>
       </div>
     </div>
-    <button class="btn" onclick="calcNa()">Calcular ↗</button>
+
+    <button class="btn-calc" onclick="calcNa()">Calcular</button>
     <div id="r-na" class="res-area"></div>
   </div>
-</div></div>
 
-<!-- ══ MAGNÉSIO ══ -->
-<div id="p-mg" class="panel"><div class="container">
-  <div class="card-info">
-    <div class="sec-gray">📦 Apresentações — Brasil</div>
-    <table class="ref-table">
-      <tr><th>Produto</th><th>Concentração</th><th>Volume</th><th>g / mEq por ampola</th><th>Via</th></tr>
-      <tr><td>MgSO₄ 50%</td><td>500 mg/mL = 4,05 mEq/mL</td><td>10 mL</td><td><strong>5g = 40,5 mEq/amp</strong></td><td><span class="badge bc">CVC</span> <span class="badge bp">PVP diluído</span></td></tr>
-      <tr><td>MgSO₄ 25%</td><td>250 mg/mL = 2,03 mEq/mL</td><td>10 mL</td><td><strong>2,5g = 20,3 mEq/amp</strong></td><td><span class="badge bp">PVP diluído</span></td></tr>
-      <tr><td>MgSO₄ 10%</td><td>100 mg/mL = 0,81 mEq/mL</td><td>10 mL</td><td><strong>1g = 8,1 mEq/amp</strong></td><td><span class="badge bp">PVP OK</span></td></tr>
-      <tr><td>Óxido de Mg 400mg (cp)</td><td>240 mg Mg elem/cp</td><td>—</td><td><strong>~19,8 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-      <tr><td>Citrato de Mg (sachê/cp)</td><td>300 mg Mg elem</td><td>—</td><td><strong>~24,7 mEq/dose</strong></td><td><span class="badge bv">VO</span></td></tr>
-    </table>
-    <div style="font-size:11px;color:var(--gray);margin-top:5px">1g MgSO₄ = 8,1 mEq Mg | MgSO₄ 50%: NUNCA infundir puro — sempre diluir antes</div>
-  </div>
+</div>
+
+<!-- ================================================================
+     MAGNESIO
+     ================================================================ -->
+<div id="p-mg" class="panel">
+
   <div class="card">
-    <div class="sec">Calculadora</div>
-    <div class="g3">
-      <div class="field"><label>Peso (kg)</label><input id="mgp" type="number" placeholder="70" step="0.1"></div>
-      <div class="field"><label>Mg²⁺ atual (mg/dL)</label><input id="mga" type="number" placeholder="1.2" step="0.1"></div>
+    <div class="card-title">Apresentacoes disponíveis no Brasil</div>
+    <table class="ref-table">
+      <tr><th>Produto</th><th>Concentracao</th><th>Volume</th><th>g / mEq por unidade</th><th>Via</th></tr>
+      <tr><td>MgSO4 50%</td><td>500mg/mL = 4,05 mEq/mL</td><td>10 mL</td><td><strong>5g = 40,5 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span>&nbsp;<span class="badge badge-pvp">PVP dil.</span></td></tr>
+      <tr><td>MgSO4 25%</td><td>250mg/mL = 2,03 mEq/mL</td><td>10 mL</td><td><strong>2,5g = 20,3 mEq/amp</strong></td><td><span class="badge badge-pvp">PVP dil.</span></td></tr>
+      <tr><td>MgSO4 10%</td><td>100mg/mL = 0,81 mEq/mL</td><td>10 mL</td><td><strong>1g = 8,1 mEq/amp</strong></td><td><span class="badge badge-pvp">PVP OK</span></td></tr>
+      <tr><td>Oxido de Mg 400mg (cp)</td><td>240mg Mg elem/cp</td><td>&mdash;</td><td><strong>~19,8 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Citrato de Mg (sache)</td><td>300mg Mg elem</td><td>&mdash;</td><td><strong>~24,7 mEq/sache</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+    </table>
+    <div style="font-size:11px;color:#888;margin-top:4px">1g MgSO4 = 8,1 mEq Mg | MgSO4 50%: NUNCA infundir puro &mdash; sempre diluir antes de infundir</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Calculadora</div>
+    <div class="row3">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="mgp" placeholder="70" step="0.1"></div>
+      <div class="field"><label>Mg2+ atual (mg/dL)</label><input type="number" id="mga" placeholder="1.2" step="0.1"></div>
       <div class="field"><label>Gravidade</label>
         <select id="mgg">
-          <option value="l">Leve (1,4–1,8 mg/dL) — assintomático</option>
-          <option value="m">Moderada (1,0–1,4 mg/dL)</option>
-          <option value="g">Grave (&lt;1,0 mg/dL) / sintomático</option>
+          <option value="l">Leve (1,4&ndash;1,8 mg/dL) &mdash; assintomatico</option>
+          <option value="m">Moderada (1,0&ndash;1,4 mg/dL)</option>
+          <option value="g">Grave (&lt;1,0 mg/dL) / sintomatico</option>
         </select>
       </div>
     </div>
-    <div class="g2">
-      <div class="field"><label>Apresentação / Via</label>
+    <div class="row2">
+      <div class="field"><label>Apresentacao / Via</label>
         <select id="mgv">
-          <option value="ev50">EV — MgSO₄ 50% (5g/10mL = 40,5 mEq/amp)</option>
-          <option value="ev10">EV — MgSO₄ 10% (1g/10mL = 8,1 mEq/amp)</option>
-          <option value="vo">VO — Óxido/Citrato de Mg</option>
+          <option value="ev50">EV &mdash; MgSO4 50% (5g/10mL = 40,5 mEq/amp)</option>
+          <option value="ev10">EV &mdash; MgSO4 10% (1g/10mL = 8,1 mEq/amp)</option>
+          <option value="vo">VO &mdash; Oxido / Citrato de Mg</option>
         </select>
       </div>
-      <div class="field"><label>Função renal</label>
-        <select id="mgr"><option value="n">Normal</option><option value="a">Alterada (TFG 30–60)</option><option value="g">Grave (TFG &lt;30)</option></select>
+      <div class="field"><label>Funcao renal</label>
+        <select id="mgr">
+          <option value="n">Normal</option>
+          <option value="a">Alterada (TFG 30&ndash;60)</option>
+          <option value="g">Grave (TFG &lt;30)</option>
+        </select>
       </div>
     </div>
-    <button class="btn" onclick="calcMg()">Calcular reposição ↗</button>
+    <button class="btn-calc" onclick="calcMg()">Calcular reposicao</button>
     <div id="r-mg" class="res-area"></div>
   </div>
-</div></div>
 
-<!-- ══ CÁLCIO ══ -->
-<div id="p-ca" class="panel"><div class="container">
-  <div class="card-info">
-    <div class="sec-gray">📦 Apresentações — Brasil</div>
-    <table class="ref-table">
-      <tr><th>Produto</th><th>Concentração</th><th>Volume</th><th>Ca elem / mEq por unidade</th><th>Via</th></tr>
-      <tr><td>Gluconato de Ca 10%</td><td>100 mg/mL</td><td>10 mL (1g)</td><td><strong>93 mg / 4,65 mEq/amp</strong></td><td><span class="badge bp">PVP OK</span></td></tr>
-      <tr><td>Cloreto de Ca 10%</td><td>100 mg/mL</td><td>10 mL (1g)</td><td><strong>272 mg / 13,6 mEq/amp</strong></td><td><span class="badge bc">CVC APENAS</span></td></tr>
-      <tr><td>Carbonato de Ca 500mg (cp)</td><td>200 mg Ca elem/cp</td><td>—</td><td><strong>200 mg / 10 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-      <tr><td>Carbonato de Ca 1250mg (cp)</td><td>500 mg Ca elem/cp</td><td>—</td><td><strong>500 mg / 25 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-      <tr><td>Citrato de Ca (cp)</td><td>200 mg Ca elem/cp</td><td>—</td><td><strong>200 mg / 10 mEq/cp</strong></td><td><span class="badge bv">VO</span></td></tr>
-    </table>
-    <div style="font-size:11px;color:var(--gray);margin-top:5px">Gluconato Ca 10%: 1g = 4,65 mEq | Cloreto Ca 10%: 1g = 13,6 mEq (3× mais potente) | Cloreto: CVC OBRIGATÓRIO — cáustico em veia periférica</div>
-  </div>
+</div>
+
+<!-- ================================================================
+     CALCIO
+     ================================================================ -->
+<div id="p-ca" class="panel">
+
   <div class="card">
-    <div class="sec">Calculadora</div>
-    <div class="g3">
-      <div class="field"><label>Peso (kg)</label><input id="cap" type="number" placeholder="70" step="0.1"></div>
-      <div class="field"><label>Ca²⁺ total (mg/dL)</label><input id="cat" type="number" placeholder="7.5" step="0.1"></div>
-      <div class="field"><label>Albumina (g/dL)</label><input id="caalb" type="number" placeholder="3.0" step="0.1" value="4.0"></div>
+    <div class="card-title">Apresentacoes disponíveis no Brasil</div>
+    <table class="ref-table">
+      <tr><th>Produto</th><th>Concentracao</th><th>Volume</th><th>Ca elem / mEq por unidade</th><th>Via</th></tr>
+      <tr><td>Gluconato de Ca 10%</td><td>100mg/mL</td><td>10 mL (1g)</td><td><strong>93mg / 4,65 mEq/amp</strong></td><td><span class="badge badge-pvp">PVP OK</span></td></tr>
+      <tr><td>Cloreto de Ca 10%</td><td>100mg/mL</td><td>10 mL (1g)</td><td><strong>272mg / 13,6 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC APENAS</span></td></tr>
+      <tr><td>Carbonato de Ca 500mg (cp)</td><td>200mg Ca elem/cp</td><td>&mdash;</td><td><strong>200mg / 10 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Carbonato de Ca 1250mg (cp)</td><td>500mg Ca elem/cp</td><td>&mdash;</td><td><strong>500mg / 25 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Citrato de Ca 950mg (cp)</td><td>200mg Ca elem/cp</td><td>&mdash;</td><td><strong>200mg / 10 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+    </table>
+    <div style="font-size:11px;color:#888;margin-top:4px">Gluconato Ca 10%: 1g = 4,65 mEq | Cloreto Ca 10%: 1g = 13,6 mEq (3x mais potente) | Cloreto: CVC obrigatorio &mdash; caustico, necrose em PVP</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Calculadora</div>
+    <div class="row3">
+      <div class="field"><label>Peso (kg)</label><input type="number" id="cap" placeholder="70" step="0.1"></div>
+      <div class="field"><label>Ca2+ total (mg/dL)</label><input type="number" id="cat" placeholder="7.5" step="0.1"></div>
+      <div class="field"><label>Albumina (g/dL)</label><input type="number" id="caalb" placeholder="4.0" step="0.1" value="4.0"></div>
     </div>
-    <div class="g3">
-      <div class="field"><label>Ca²⁺ ionizado (mmol/L) — opcional</label><input id="caion" type="number" placeholder="0.95" step="0.01"></div>
-      <div class="field"><label>Apresentação / Via</label>
+    <div class="row2">
+      <div class="field"><label>Ca2+ ionizado (mmol/L) &mdash; opcional</label><input type="number" id="caion" placeholder="0.95" step="0.01"></div>
+      <div class="field"><label>Apresentacao / Via</label>
         <select id="cav">
-          <option value="gluc">EV — Gluconato Ca 10% (4,65 mEq/amp) — PVP OK</option>
-          <option value="clor">EV — Cloreto Ca 10% (13,6 mEq/amp) — CVC</option>
-          <option value="carb">VO — Carbonato Ca (500mg elem/cp = 25 mEq)</option>
-          <option value="citr">VO — Citrato Ca (200mg elem/cp = 10 mEq)</option>
-        </select>
-      </div>
-      <div class="field"><label>Gravidade</label>
-        <select id="cag">
-          <option value="l">Leve / Assintomático</option>
-          <option value="m">Moderada (cãibras, parestesias)</option>
-          <option value="g">Grave (tetania, convulsão, arritmia)</option>
+          <option value="gluc">EV &mdash; Gluconato Ca 10% (4,65 mEq/amp) &mdash; PVP OK</option>
+          <option value="clor">EV &mdash; Cloreto Ca 10% (13,6 mEq/amp) &mdash; CVC</option>
+          <option value="carb">VO &mdash; Carbonato Ca (500mg elem/cp = 25 mEq)</option>
+          <option value="citr">VO &mdash; Citrato Ca (200mg elem/cp = 10 mEq)</option>
         </select>
       </div>
     </div>
-    <button class="btn" onclick="calcCa()">Calcular reposição ↗</button>
+    <div class="field" style="max-width:340px;margin-bottom:9px"><label>Gravidade</label>
+      <select id="cag">
+        <option value="l">Leve / Assintomatico</option>
+        <option value="m">Moderada (cambras, parestesias)</option>
+        <option value="g">Grave (tetania, convulsao, arritmia)</option>
+      </select>
+    </div>
+    <button class="btn-calc" onclick="calcCa()">Calcular reposicao</button>
     <div id="r-ca" class="res-area"></div>
   </div>
-</div></div>
 
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT — pure ASCII, no external dependencies
+     ================================================================ -->
 <script>
-function g(id){return parseFloat(document.getElementById(id).value)||0}
-function s(id){return document.getElementById(id).value}
-function f(n,d=1){return Number(n).toFixed(d)}
-function nb(v,l){return`<div class="nb"><div class="nbv">${v}</div><div class="nbl">${l}</div></div>`}
-function dr(k,v,hl=false){return`<div class="drow"><span class="dk">${k}</span><span class="dv${hl?' hl':''}">${v}</span></div>`}
-function al(c,m){return`<div class="al al-${c}">${m}</div>`}
-function sub(t,rows){return`<div class="sub"><div class="rtitle">${t}</div>${rows.map(([k,v])=>dr(k,v)).join('')}</div>`}
-function show(id,h){const e=document.getElementById(id);e.innerHTML=h;e.scrollIntoView({behavior:'smooth',block:'nearest'})}
+var naModo = '24h';
 
-function tab(t,el){
-  document.querySelectorAll('.ntab').forEach(e=>e.classList.remove('on'));
-  el.classList.add('on');
-  document.querySelectorAll('.panel').forEach(e=>e.classList.remove('on'));
-  document.getElementById('p-'+t).classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'});
+function g(id){ return document.getElementById(id); }
+function fv(id){
+  var el = g(id);
+  if(!el || el.value.trim() === '') return null;
+  var v = parseFloat(el.value.replace(',','.'));
+  return isNaN(v) ? null : v;
+}
+function sv(id){ return g(id) ? g(id).value : ''; }
+function fmt(n, d){ d = (d === undefined) ? 1 : d; return Number(n).toFixed(d); }
+function show(id, html){ g(id).innerHTML = html; }
+
+/* --- Tab navigation --- */
+function showTab(t){
+  var tabs = ['k','na','mg','ca'];
+  var cls  = {k:'on-k', na:'on-na', mg:'on-mg', ca:'on-ca'};
+  tabs.forEach(function(x){
+    var btn = g('tab-'+x);
+    btn.className = 'tab-btn' + (x === t ? ' ' + cls[x] : '');
+    g('p-'+x).className = 'panel' + (x === t ? ' on' : '');
+  });
 }
 
-let naModo='24h';
-function setNaModo(m,el){
-  naModo=m;
-  document.querySelectorAll('#p-na .mt').forEach(e=>e.classList.remove('on'));
-  el.classList.add('on');
-  document.querySelectorAll('#p-na .mp').forEach(e=>e.classList.remove('on'));
-  document.getElementById('nm-'+m).classList.add('on');
-  document.getElementById('r-na').innerHTML='';
+/* --- Na+ mode tabs --- */
+function setNaModo(m, btn){
+  naModo = m;
+  ['24h','vel','vol'].forEach(function(x){
+    g('mb-'+x).className = 'mode-btn' + (x === m ? ' sel' : '');
+    g('nm-'+x).className = 'mode-panel' + (x === m ? ' on' : '');
+  });
+  g('r-na').innerHTML = '';
 }
 
-// -- POTASSIO --
+/* --- HTML helpers (same pattern as HD prescriber) --- */
+function rb(cls, label, val, detail){
+  return '<div class="rec-box ' + cls + '">' +
+    '<div class="rec-label">' + label + '</div>' +
+    '<div class="rec-val">' + val + '</div>' +
+    '<div class="rec-detail">' + detail + '</div>' +
+    '</div>';
+}
+function al(cls, msg){
+  return '<div class="alert-box alert-' + cls + '">' + msg + '</div>';
+}
+function nb(v, l){
+  return '<div class="num-box"><div class="num-val">' + v + '</div><div class="num-lbl">' + l + '</div></div>';
+}
+function dr(k, v){
+  return '<div class="drow"><span class="dk">' + k + '</span><span class="dv">' + v + '</span></div>';
+}
+function dblock(rows){
+  return '<div style="margin-top:10px">' + rows.join('') + '</div>';
+}
+
+/* ================================================================
+   POTASSIO
+   ================================================================ */
 function calcK(){
-  const peso=g('kp'),kA=g('ka'),alvo=g('kalvo')||4.0,via=s('kv'),renal=s('kr');
-  if(!peso||!kA){show('r-k',al('w','Preencha peso e K+ atual.'));return}
-  if(kA>=alvo){show('r-k',al('w','K+ atual j\u00e1 est\u00e1 no alvo ou acima.'));return}
-  const deficit=Math.max(0,(alvo-kA)*peso*0.4);
-  const limDia=renal==='g'?40:renal==='a'?80:deficit;
-  const dose=Math.min(deficit,limDia);
-  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de Pot\u00e1ssio</div>
-    <div class="ng">${nb(f(kA,1)+' mEq/L','K+ atual')}${nb(f(deficit,0)+' mEq','d\u00e9ficit total')}${nb(f(dose,0)+' mEq','dose 1\u00aa etapa')}</div>`;
-  h+=dr('F\u00f3rmula','('+alvo+' - '+kA+') x '+peso+'kg x 0,4 = '+f(deficit,0)+' mEq');
-  if(via==='cvc25'){
-    const n=Math.ceil(dose/25),vd=Math.max(100,n*50),t=Math.max(1,dose/20);
-    h+=dr('Apresenta\u00e7\u00e3o','KCl 19,1% \u2014 <strong>25 mEq/amp (10mL)</strong>',true);
-    h+=dr('Ampolas',n+' amp = '+n*25+' mEq');
-    h+=dr('Dilui\u00e7\u00e3o',n+' amp ('+n*10+'mL) + SF 0,9% q.s.p. '+vd+'mL -> '+f(dose/vd*1000,0)+' mEq/L');
-    h+=dr('Velocidade','M\u00e1x. <strong>20 mEq/h</strong> -> '+f(vd/t,0)+' mL/h por '+f(t,1)+'h',true);
-    h+=dr('Concentra\u00e7\u00e3o m\u00e1x.','200 mEq/L (UTI: at\u00e9 400 mEq/L com ECG cont\u00ednuo)');
-    h+=dr('Limite di\u00e1rio','<= 200\u2013300 mEq/24h');
-    h+=al('w','ECG cont\u00ednuo se K+ &lt;2,5 mEq/L ou taxa >20 mEq/h. Re-dosar K+ a cada <strong>4\u20136h</strong> durante reposi\u00e7\u00e3o ativa (NHS Grampian 2024) \u2014 n\u00e3o repetir dose sem nova medi\u00e7\u00e3o.');
-  } else if(via==='pvp20'){
-    const n=Math.ceil(dose/20),t=Math.max(1,dose/10);
-    h+=dr('Apresenta\u00e7\u00e3o','Bolsa SF + KCl \u2014 <strong>20 mEq/100mL</strong> (padr\u00e3o PVP)',true);
-    h+=dr('Bolsas',n+' x 100mL = '+n*20+' mEq');
-    h+=dr('Velocidade','M\u00e1x. <strong>10 mEq/h</strong> -> 50 mL/h (2h/bolsa)',true);
-    h+=dr('Concentra\u00e7\u00e3o m\u00e1x. PVP','<strong>40 mEq/L</strong> = limite conservador (NHS 2024). A bolsa 20 mEq/100mL (=200 mEq/L) excede esse limite te\u00f3rico mas \u00e9 aceita clinicamente \u2014 infundir lentamente e em veia calibrosa');
-    h+=dr('Re-dosagem','Aguardar >=1h ap\u00f3s t\u00e9rmino antes de coletar novo K+');
-    h+=al('w','Dose >80 mEq: migrar para CVC. PVP: preferir sempre 20 mEq/100mL.');
-  } else {
-    const meq={'vox':8,'vos':8,'vok':20}[via];
-    const nome={'vox':'KCl Xarope 6% \u2014 8 mEq/5mL','vos':'Slow-K\u00ae \u2014 8 mEq/cp','vok':'Kaleorid\u00ae LP \u2014 20 mEq/cp'}[via];
-    const un={'vox':'doses de 5mL','vos':'comprimido(s)','vok':'comprimido(s)'}[via];
-    const n=Math.ceil(dose/meq);
-    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
-    h+=dr('Quantidade',n+' '+un+' = '+n*meq+' mEq');
-    h+=dr('Posologia','Dividir em 2\u20134x/dia \u2014 tomar com refei\u00e7\u00e3o');
-    h+=dr('Dose m\u00e1x. VO','40\u2013100 mEq/dia');
-    h+=dr('Re-dosagem','Aguardar >=2h ap\u00f3s dose oral antes de coletar novo K+');
-    h+=al('i','VO prefer\u00edvel quando tolerada. Menor risco de arritmia e flebite.');
+  var peso = fv('kp');
+  var kA   = fv('ka');
+  var alvo = fv('kalvo') || 4.0;
+  var via  = sv('kv');
+  var renal= sv('kr');
+
+  if(!peso || !kA){ show('r-k', al('w','Preencha peso e K+ atual.')); return; }
+  if(kA >= alvo){ show('r-k', al('w','K+ atual ja esta no alvo ou acima.')); return; }
+
+  var deficit = (alvo - kA) * peso * 0.4;
+  var limDia  = renal === 'g' ? 40 : renal === 'a' ? 80 : 300;
+  var dose    = Math.min(deficit, limDia);
+
+  var h = dblock([
+    dr('K+ atual', kA + ' mEq/L'),
+    dr('Deficit calculado', fmt(deficit,0) + ' mEq &mdash; [(' + alvo + ' - ' + kA + ') x ' + peso + 'kg x 0,4]'),
+    dr('Dose 1a etapa', fmt(dose,0) + ' mEq')
+  ]);
+
+  if(via === 'cvc25'){
+    var n  = Math.ceil(dose / 25);
+    var vd = Math.max(100, n * 50);
+    var t  = Math.max(1, dose / 20);
+    h += rb('blue',
+      'Prescricao &mdash; EV CVC &mdash; KCl 19,1% (25 mEq/amp)',
+      fmt(n,0) + ' amp &rarr; ' + fmt(dose/vd*1000,0) + ' mEq/L &rarr; ' + fmt(vd/t,0) + ' mL/h por ' + fmt(t,1) + 'h',
+      fmt(n,0) + ' amp KCl 19,1% (25 mEq/amp) + SF 0,9% q.s.p. ' + vd + 'mL<br>' +
+      'Velocidade maxima: <strong>20 mEq/h</strong> via CVC<br>' +
+      'Concentracao maxima CVC: 200 mEq/L (ate 400 mEq/L em UTI com ECG continuo)<br>' +
+      'Limite diario: &le; 200&ndash;300 mEq/24h'
+    );
+    h += al('w', 'Re-dosar K+ a cada 4&ndash;6h durante reposicao ativa (NHS Grampian 2024). ECG continuo se K+ &lt; 2,5 mEq/L.');
   }
-  h+='</div>';
-  if(renal!=='n') h+=al('d','IR: risco de hipercalemia de rebote. Limite '+(renal==='g'?40:80)+' mEq/24h. K+ a cada 2\u20134h.');
-  if(kA<2.5) h+=al('d','Hipocalemia grave (&lt;2,5 mEq/L): ECG cont\u00ednuo obrigat\u00f3rio. Considerar UTI.');
-  if(kA<3.0) h+=al('w','DKA / cetoacidose diab\u00e9tica: velocidades de 40\u201360 mEq/h podem ser necess\u00e1rias com monitora\u00e7\u00e3o hor\u00e1ria do K+ \u2014 avaliar individualmente.');
-  h+=al('w','\u26a0\ufe0f Sempre corrigir Mg\u00b2+ concomitante \u2014 hipomagnesemia perpetua perda renal de K+ e torna a corre\u00e7\u00e3o refrat\u00e1ria.');
-  show('r-k',h);
+  else if(via === 'pvp20'){
+    var n2 = Math.ceil(dose / 20);
+    h += rb('green',
+      'Prescricao &mdash; EV PVP &mdash; Bolsa 20 mEq/100mL',
+      n2 + ' bolsa(s) de 100mL &rarr; 50 mL/h por bolsa (2h/bolsa)',
+      'Velocidade maxima: <strong>10 mEq/h</strong> via PVP<br>' +
+      'Limite conservador NHS 2024: 40 mEq/L &mdash; a bolsa 20 mEq/100mL e aceita clinicamente em veia calibrosa<br>' +
+      'Para dose &gt; 80 mEq: migrar para CVC<br>' +
+      'Re-dosar K+ apos cada ciclo antes de repetir'
+    );
+  }
+  else {
+    var meqMap = {vox:8, vos:8, vok:20};
+    var nomeMap = {
+      vox: 'KCl Xarope 6% &mdash; 8 mEq/5mL',
+      vos: 'Slow-K &mdash; 8 mEq/cp',
+      vok: 'Kaleorid LP &mdash; 20 mEq/cp'
+    };
+    var unMap = {vox:'doses de 5mL', vos:'comprimido(s)', vok:'comprimido(s)'};
+    var n3 = Math.ceil(dose / meqMap[via]);
+    h += rb('purple',
+      'Prescricao &mdash; Via Oral &mdash; ' + nomeMap[via],
+      n3 + ' ' + unMap[via] + ' = ' + (n3 * meqMap[via]) + ' mEq',
+      'Dividir em 2&ndash;4x/dia &mdash; tomar com refeicao para reduzir irritacao GI<br>' +
+      'Dose diaria maxima VO: 40&ndash;100 mEq/dia<br>' +
+      'Re-dosar K+ &ge; 2h apos dose oral antes de repetir'
+    );
+    h += al('i', 'VO preferivel quando tolerada. Menor risco de arritmia e flebite.');
+  }
+
+  if(renal !== 'n'){
+    h += al('d', 'IR: risco de hipercalemia de rebote. Limite ' + (renal === 'g' ? 40 : 80) + ' mEq/24h. K+ a cada 2&ndash;4h.');
+  }
+  if(kA < 2.5){
+    h += al('d', 'Hipocalemia grave (&lt;2,5 mEq/L): ECG continuo obrigatorio. Considerar UTI.');
+  }
+  if(kA < 3.0){
+    h += al('w', 'DKA / cetoacidose: velocidades de 40&ndash;60 mEq/h podem ser necessarias com monitorizacao horaria &mdash; avaliar individualmente.');
+  }
+  h += al('w', 'Sempre corrigir Mg2+ concomitante &mdash; hipomagnesemia perpetua perda renal de K+ e torna a correcao refrataria.');
+
+  show('r-k', h);
 }
 
-// -- SODIO --
+/* ================================================================
+   SODIO
+   ================================================================ */
 function calcNa(){
-  const peso=g('nap'),naA=g('naa'),naAlvo=g('naalvo');
-  const tbw=peso*parseFloat(s('natbw'));
-  const naInf=parseFloat(s('nasol'));
-  const lim=parseFloat(s('nalim'));
-  const via=s('navia');
-  const isHAB=naInf===494;
-  if(!peso||!naA||!naAlvo){show('r-na',al('w','Preencha peso, Na+ atual e alvo.'));return}
-  if(naAlvo<=naA){show('r-na',al('w','Na+ alvo deve ser maior que o atual.'));return}
-  if(naInf>=400&&via==='pvp'){show('r-na',al('d','Solu\u00e7\u00e3o hipert\u00f4nica n\u00e3o pode ser administrada em PVP.'));return}
-  const d1L=(naInf-naA)/(tbw+1);
-  const dAlvo=naAlvo-naA;
-  const volMaxDia=(lim/d1L)*1000;
-  const taxaMaxMlh=volMaxDia/24; // mL/h maximo seguro para esta solucao NESTE paciente
+  var peso  = fv('nap');
+  var naA   = fv('naa');
+  var naAlvo= fv('naalvo');
+  var tbw   = peso ? peso * parseFloat(sv('natbw')) : null;
+  var naInf = parseFloat(sv('nasol'));
+  var lim   = parseFloat(sv('nalim'));
+  var via   = sv('navia');
+  var isHAB = (naInf === 494);
 
-  let h=`<div class="rcard"><div class="rtitle">Par\u00e2metros \u2014 Adrogu\u00e9-Madias</div>`;
-  h+=dr('TBW estimado',f(tbw,1)+' L ('+peso+'kg x '+s('natbw')+')');
-  h+=dr('\u0394Na por litro de infusato','<strong>+'+f(d1L,2)+' mEq/L</strong> por litro',true);
-  h+=dr('Corre\u00e7\u00e3o total necess\u00e1ria',f(dAlvo,1)+' mEq/L ('+naA+' -> '+naAlvo+')');
-  h+=dr('Volume m\u00e1x. seguro / 24h',f(volMaxDia,0)+' mL desta solu\u00e7\u00e3o',true);
-  h+=dr('Taxa m\u00e1x. segura para este paciente','<strong>'+f(taxaMaxMlh,0)+' mL/h</strong> cont\u00ednuo',true);
-  if(isHAB) h+=dr('Refer\u00eancia HAB',''+f(taxaMaxMlh,0)+' mL/h = '+f(taxaMaxMlh/500*247,1)+' mEq Na/h desta solu\u00e7\u00e3o');
-  h+='</div>';
+  if(!peso || !naA || !naAlvo){ show('r-na', al('w','Preencha peso, Na+ atual e alvo.')); return; }
+  if(naAlvo <= naA){ show('r-na', al('w','Na+ alvo deve ser maior que o atual.')); return; }
+  if(naInf >= 400 && via === 'pvp'){ show('r-na', al('d','Solucao hipertonica nao pode ser administrada em PVP.')); return; }
 
-  if(naModo==='24h'){
-    const c24=Math.min(dAlvo,lim),v24=c24/d1L,taxa=v24*1000/24,vH=d1L*(taxa/1000);
-    h+=`<div class="rcard"><div class="rtitle">Prescri\u00e7\u00e3o \u2014 24h</div>
-      <div class="ng">${nb(f(taxa,0)+' mL/h','taxa de infus\u00e3o')}${nb('+'+f(c24,1)+' mEq/L','corre\u00e7\u00e3o em 24h')}${nb(f(naA+c24,1)+' mEq/L','Na+ ao final')}</div>`;
-    h+=dr('Infus\u00e3o',f(taxa,0)+' mL/h cont\u00ednuo x 24h',true);
-    h+=dr('Velocidade de corre\u00e7\u00e3o','~'+f(vH,2)+' mEq/L/h');
-    h+=dr('Volume total 24h',f(v24,2)+' L = '+f(v24*1000,0)+' mL');
-    if(isHAB){const nb2=Math.ceil(v24*1000/500);h+=sub('\u1f3e5 Preparo \u2014 HAB',[['Bolsas',nb2+' x 500mL (SF 390mL + 11amp NaCl 10%)'],['Dura\u00e7\u00e3o/bolsa',f(500/taxa,1)+'h a '+f(taxa,0)+' mL/h']])}
-    else if(naInf===154){h+=sub('\u1f4e6 SF 0,9%',[['Bolsas 500mL',Math.ceil(v24/0.5)+' bolsa(s)'],['Bolsas 1000mL',Math.ceil(v24)+' bolsa(s)']])}
-    if(dAlvo>lim) h+=al('w','Alvo n\u00e3o atingido em 24h pelo limite de seguran\u00e7a. Tempo total estimado: ~'+f(dAlvo/vH,0)+'h. Reavaliar a cada 24h.');
-    h+='</div>';
-  } else if(naModo==='vel'){
-    const mlh=g('namlh');
-    if(!mlh){show('r-na',al('w','Informe a velocidade em mL/h.'));return}
-    const cH=d1L*(mlh/1000),c24h=cH*24,tMax=lim/cH,tAlvo=dAlvo/cH,tRec=Math.min(tMax,tAlvo);
-    const cRec=cH*tRec,naF=naA+cRec,seguro=c24h<=lim,vol=mlh*tRec;
-    h+=`<div class="rcard"><div class="rtitle">Prescri\u00e7\u00e3o \u2014 Velocidade Definida</div>
-      <div class="ng">${nb(f(cH,2)+' mEq/L/h','velocidade corre\u00e7\u00e3o')}${nb(f(tRec,1)+'h',seguro?'at\u00e9 o alvo':'m\u00e1x. seguro')}${nb(f(naF,1)+' mEq/L','Na+ final')}</div>`;
-    h+=dr('Velocidade solicitada',mlh+' mL/h (taxa m\u00e1x. segura: '+f(taxaMaxMlh,0)+' mL/h)',!seguro);
-    h+=dr('Infundir por',f(tRec,1)+'h '+(seguro?'(alvo atingido)':'-> PARAR (limite di\u00e1rio)'),true);
-    h+=dr('Corre\u00e7\u00e3o obtida','+'+f(cRec,1)+' mEq/L');
-    h+=dr('Volume total',f(vol,0)+' mL');
-    h+=dr('Proje\u00e7\u00e3o 24h cont\u00ednuo',f(c24h,1)+' mEq/L (limite: '+lim+')');
-    if(isHAB){const nb2=Math.ceil(vol/500);h+=sub('\u1f3e5 Preparo \u2014 HAB',[['Bolsas',nb2+' x 500mL'],['Dura\u00e7\u00e3o/bolsa',f(500/mlh,1)+'h']])}
-    if(!seguro){h+=al('d','\u26a0\ufe0f '+mlh+' mL/h por 24h -> Na+ subiria '+f(c24h,1)+' mEq/L \u2014 acima do limite de '+lim+'/24h. PARAR ap\u00f3s '+f(tMax,1)+'h (Na+ ~ '+f(naA+lim,1)+' mEq/L). Taxa m\u00e1x. segura para este paciente: '+f(taxaMaxMlh,0)+' mL/h.')}
-    else{h+=al('s','\u2713 '+mlh+' mL/h = '+f(c24h,1)+' mEq/L/24h \u2014 dentro do limite de '+lim+'/24h.')}
-    h+=al('i','Monitorar Na+ a cada 2\u20134h. Suspender ao atingir '+naAlvo+' mEq/L (previs\u00e3o: '+f(tAlvo,1)+'h).');
-    h+='</div>';
-  } else {
-    const vol=g('navol'),th=g('nath');
-    if(!vol||!th){show('r-na',al('w','Informe volume e tempo.'));return}
-    const taxa=vol/th,cT=d1L*(vol/1000),cH=cT/th,c24=cH*24,naF=naA+cT,seguro=cT<=lim;
-    h+=`<div class="rcard"><div class="rtitle">Resultado \u2014 Por Volume</div>
-      <div class="ng">${nb('+'+f(cT,2)+' mEq/L','eleva\u00e7\u00e3o do Na+')}${nb(f(taxa,0)+' mL/h','taxa necess\u00e1ria')}${nb(f(naF,1)+' mEq/L','Na+ final')}</div>`;
-    h+=dr('Volume / tempo',vol+'mL em '+th+'h',true);
-    h+=dr('Velocidade de corre\u00e7\u00e3o',f(cH,2)+' mEq/L/h');
-    h+=dr('Proje\u00e7\u00e3o 24h cont\u00ednuo',f(c24,1)+' mEq/L (limite: '+lim+')');
-    h+=dr('Taxa m\u00e1x. segura para este paciente',f(taxaMaxMlh,0)+' mL/h desta solu\u00e7\u00e3o',true);
-    h+=dr('Volume m\u00e1x. seguro/24h',f(volMaxDia,0)+' mL desta solu\u00e7\u00e3o');
-    if(isHAB&&vol==500) h+=al('i','1 bolsa HAB (500mL) a '+f(taxa,0)+' mL/h -> Na+ +'+f(cT,2)+' mEq/L em '+th+'h.');
-    if(!seguro){h+=al('d','\u26a0\ufe0f '+vol+'mL desta solu\u00e7\u00e3o eleva Na+ em '+f(cT,2)+' mEq/L \u2014 acima do limite de '+lim+'/24h. M\u00e1x. seguro: '+f(volMaxDia,0)+' mL/24h.')}
-    else{h+=al('s','\u2713 '+vol+'mL em '+th+'h \u2014 dentro do limite de seguran\u00e7a.')}
-    h+='</div>';
-  }
+  var d1L       = (naInf - naA) / (tbw + 1);  /* delta Na per litre */
+  var dAlvo     = naAlvo - naA;
+  var volMaxDia = (lim / d1L) * 1000;          /* mL */
+  var taxaMax   = volMaxDia / 24;              /* mL/h */
 
-  if(naInf>=400) h+=al('d','Solu\u00e7\u00e3o hipert\u00f4nica >=400 mEq/L: EXCLUSIVAMENTE via CVC.');
-  h+=al('d','LIMITE ABSOLUTO: <=8\u201310 mEq/L/24h \u2014 risco de S\u00edndrome de Desmieliniza\u00e7\u00e3o Osm\u00f3tica (ODS). Meta-an\u00e1lise 2024 (n=26.710): corre\u00e7\u00e3o r\u00e1pida -> OR 3,16x. Alto risco: <=6 mEq/L/24h.');
-  h+=al('w','Supercorre\u00e7\u00e3o: SG 5% 3\u20135 mL/kg/h \u00b1 desmopressina 2\u20134 mcg IV para "frear". Monitorar Na+ a cada 2\u20134h.');
-  show('r-na',h);
-}
+  var h = dblock([
+    dr('TBW estimado', fmt(tbw,1) + ' L'),
+    dr('Delta-Na por litro de infusato', '+' + fmt(d1L,2) + ' mEq/L por litro'),
+    dr('Correcao total necessaria', fmt(dAlvo,1) + ' mEq/L (' + naA + ' &rarr; ' + naAlvo + ')'),
+    dr('Volume max. seguro / 24h', fmt(volMaxDia,0) + ' mL desta solucao'),
+    dr('Taxa max. segura (' + peso + 'kg / TBW ' + fmt(tbw,1) + 'L)', '<strong>' + fmt(taxaMax,0) + ' mL/h</strong> &mdash; valor individualizado pelo peso')
+  ]);
 
-// -- MAGNESIO --
-function calcMg(){
-  const peso=g('mgp'),mgA=g('mga'),grav=s('mgg'),via=s('mgv'),renal=s('mgr');
-  if(!peso||!mgA){show('r-mg',al('w','Preencha peso e Mg\u00b2+ atual.'));return}
-  const deficit=Math.max(0,2.0-mgA);
-  const baseG=deficit/0.2*2;
-  const maxG=grav==='g'?8:grav==='m'?4:2;
-  const doseG=Math.min(baseG,maxG);
-  const doseArred=Math.ceil(doseG)||1;
-  const mEqTotal=doseArred*8.1;
-  const tempo=grav==='g'?doseArred/2:grav==='m'?doseArred:doseArred*1.5;
-  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de Magn\u00e9sio</div>
-    <div class="ng">${nb(mgA+' mg/dL','Mg\u00b2+ atual')}${nb(doseArred+'g','dose MgSO\u2084')}${nb(f(mEqTotal,0)+' mEq','total em mEq')}</div>`;
-  h+=dr('Normal','>= 1,8 mg/dL (0,74 mmol/L)');
-  h+=dr('1g MgSO\u2084 aumenta','~+0,2 mg/dL s\u00e9rico');
-  if(via==='ev50'){
-    const n=Math.ceil(doseArred/5);
-    h+=dr('Apresenta\u00e7\u00e3o','MgSO\u2084 50% \u2014 <strong>5g/10mL = 40,5 mEq/amp</strong>',true);
-    h+=dr('Ampolas',n+' amp de 10mL = '+n*5+'g = '+f(n*40.5,0)+' mEq');
-    h+=dr('Dilui\u00e7\u00e3o obrigat\u00f3ria',n*10+'mL + SF 0,9% q.s.p. 100\u2013250mL');
-    h+=dr('Velocidade','M\u00e1x. 1g/30min (2g/h) -> '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
-    h+=al('d','\u26a0\ufe0f MgSO\u2084 50% NUNCA infundir puro \u2014 sempre diluir. Risco de necrose tecidual e parada card\u00edaca.');
-  } else if(via==='ev10'){
-    h+=dr('Apresenta\u00e7\u00e3o','MgSO\u2084 10% \u2014 <strong>1g/10mL = 8,1 mEq/amp</strong>',true);
-    h+=dr('Ampolas',doseArred+' amp = '+doseArred+'g = '+f(doseArred*8.1,0)+' mEq');
-    h+=dr('Dilui\u00e7\u00e3o',doseArred*10+'mL + SF q.s.p. 100mL');
-    h+=dr('Velocidade','M\u00e1x. 1g/30min -> '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
-  } else {
-    h+=dr('\u00d3xido Mg 400mg/cp','19,8 mEq/cp -> '+Math.ceil(doseArred/0.4)+' cp/dia');
-    h+=dr('Citrato Mg (sach\u00ea/cp)','24,7 mEq/dose -> '+Math.ceil(doseArred/0.3)+' doses/dia');
-    h+=dr('Posologia','Dividir em 2\u20133x/dia \u2014 tomar com alimento');
-    h+=al('w','VO: biodisponibilidade 30\u201340%. Citrato tem melhor toler\u00e2ncia GI que \u00f3xido. Diarreia \u00e9 limitante.');
-  }
-  if(renal==='g') h+=al('d','IR grave: reduzir dose em 50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxica\u00e7\u00e3o por Mg.');
-  if(grav==='g') h+=al('d','Grave/sintom\u00e1tico (torsades, convuls\u00e3o, tetania): 2\u20134g IV em 5\u201310 min; se persistir: 4\u20138g em 4h. Ant\u00eddoto: Gluconato Ca 1g IV.');
-  h+=al('w','\u26a0\ufe0f Hipocalcemia concomitante: MgSO\u2084 IV complexa Ca\u00b2+ ionizado e pode piorar hipocalcemia. Se Ca\u00b2+ baixo: repor Ca antes ou junto do Mg.');
-  h+=al('i','Aguardar 8\u201312h ap\u00f3s infus\u00e3o para nova dosagem (redistribui\u00e7\u00e3o tecidual). Hipocalemia refrat\u00e1ria -> corrigir Mg antes/junto.');
-  h+=al('w','\u26a0\ufe0f Hipocalcemia concomitante: repor Ca\u00b2+ <strong>antes</strong> de iniciar MgSO\u2084 IV \u2014 o \u00edon sulfato complexa Ca\u00b2+ ionizado e pode agravar agudamente a hipocalcemia (StatPearls; Medscape).');
-  h+='</div>';
-  show('r-mg',h);
-}
+  if(naModo === '24h'){
+    var c24  = Math.min(dAlvo, lim);
+    var v24  = c24 / d1L;
+    var taxa = v24 * 1000 / 24;
+    var vH   = d1L * (taxa / 1000);
 
-// -- CALCIO --
-function calcCa(){
-  const caT=g('cat'),alb=g('caalb'),caIon=g('caion'),grav=s('cag'),via=s('cav');
-  if(!caT){show('r-ca',al('w','Preencha Ca\u00b2+ total.'));return}
-  const caCorr=caT+0.8*(4-alb);
-  const deficit=Math.max(0,9.0-caCorr);
-  const isVO=via==='carb'||via==='citr';
-  const fMeq=via==='clor'?13.6:4.65;
-  const nAmp=Math.max(1,Math.round(deficit/0.5));
-  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de C\u00e1lcio</div>
-    <div class="ng">${nb(caT+' mg/dL','Ca\u00b2+ total')}${nb(f(caCorr,1)+' mg/dL','Ca\u00b2+ corrigido')}${nb(f(deficit,1)+' mg/dL','d\u00e9ficit estimado')}</div>`;
-  h+=dr('Ca\u00b2+ corrigido pela albumina',f(caCorr,1)+' mg/dL [Ca + 0,8x(4-'+alb+')]',true);
-  if(caIon>0) h+=dr('Ca\u00b2+ ionizado',caIon+' mmol/L (ref: 1,15\u20131,35 \u2014 usar para decis\u00e3o)',true);
-  if(!isVO){
-    const nome=via==='gluc'?'Gluconato Ca 10% \u2014 4,65 mEq/amp (PVP OK)':'Cloreto Ca 10% \u2014 13,6 mEq/amp (CVC APENAS)';
-    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
-    h+=dr('Dose',nAmp+' amp = '+nAmp+'g = <strong>'+f(nAmp*fMeq,1)+' mEq</strong>');
-    if(grav==='g'){
-      h+=dr('Urg\u00eancia',nAmp+' amp em 50\u2013100mL SF -> infundir em <strong>10\u201320min</strong>',true);
-      h+=al('d','Sintom\u00e1tico grave (tetania, laringoespasmo, convuls\u00e3o, arritmia): 1\u20132g IV em 10\u201320min com ECG cont\u00ednuo. Pode repetir 1\u20132x. Efeito dura 1\u20132h.');
-    } else if(grav==='m'){
-      h+=dr('Dilui\u00e7\u00e3o',nAmp*10+'mL + SF q.s.p. 100\u2013250mL');
-      h+=dr('Velocidade eletiva','<strong>0,5\u20131g/h</strong> -> '+f(nAmp,0)+' amp em '+f(nAmp*0.75,1)+'\u2013'+f(nAmp*1.5,1)+'h',true);
-      h+=dr('Limite absoluto','n\u00e3o exceder 1g/10min (100mg/min) \u2014 risco bradicardia/assistolia');
-    } else {
-      h+=dr('Dilui\u00e7\u00e3o',nAmp*10+'mL + SF q.s.p. 100\u2013250mL');
-      h+=dr('Velocidade eletiva','<strong>0,5\u20131g/h</strong> \u2014 infus\u00e3o lenta em '+f(nAmp,0)+'\u2013'+f(nAmp*2,0)+'h',true);
-      h+=dr('Limite absoluto','n\u00e3o exceder <strong>1g/10min (100mg/min)</strong> \u2014 risco bradicardia/assistolia');
+    h += '<div class="nums-grid">' +
+      nb(fmt(taxa,0) + ' mL/h', 'taxa de infusao') +
+      nb('+' + fmt(c24,1) + ' mEq/L', 'correcao em 24h') +
+      nb(fmt(naA + c24,1) + ' mEq/L', 'Na+ ao final') +
+      '</div>';
+
+    var prepHAB = isHAB
+      ? '<br>Bolsas HAB: ' + Math.ceil(v24*1000/500) + ' x 500mL | Duracao/bolsa: ' + fmt(500/taxa,1) + 'h'
+      : '';
+    h += rb('blue',
+      'Prescricao &mdash; Em 24h',
+      fmt(taxa,0) + ' mL/h continuo x 24h',
+      'Velocidade de correcao: ~' + fmt(vH,2) + ' mEq/L/h<br>' +
+      'Volume total 24h: ' + fmt(v24,2) + ' L (' + fmt(v24*1000,0) + ' mL)' + prepHAB
+    );
+
+    if(dAlvo > lim){
+      h += al('w', 'Alvo nao atingido em 24h pelo limite de seguranca. Tempo total estimado: ~' + fmt(dAlvo/vH,0) + 'h. Reavaliar a cada 24h.');
     }
-    if(via==='clor') h+=al('d','Cloreto Ca: CVC OBRIGAT\u00d3RIO \u2014 altamente c\u00e1ustico, necrose em PVP. 3x mais potente que gluconato. Preferido em PCR e emerg\u00eancia grave.');
-    else h+=al('i','Gluconato Ca: \u00fanico sal seguro para PVP. Prefer\u00edvel para reposi\u00e7\u00e3o eletiva e moderada.');
-  } else {
-    const meqCp=via==='carb'?25:10;
-    const nome=via==='carb'?'Carbonato Ca 1250mg (500mg elem/cp = 25 mEq)':'Citrato Ca (200mg elem/cp = 10 mEq)';
-    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
-    h+=dr('Posologia',(grav==='l'?'2\u20133':'3\u20134')+' cp/dia = '+((grav==='l'?2:3)*meqCp)+'\u2013'+((grav==='l'?3:4)*meqCp)+' mEq/dia');
-    if(via==='carb') h+=al('i','Carbonato: tomar COM refei\u00e7\u00e3o (requer acidez g\u00e1strica). Evitar com IBP sem ajuste. Pode causar constipa\u00e7\u00e3o.');
-    else h+=al('i','Citrato: absor\u00e7\u00e3o independente do pH \u2014 prefer\u00edvel com IBP, gastrectomizados e idosos. Melhor toler\u00e2ncia GI.');
-    h+=al('w','Associar calcitriol 0,25\u20130,5 mcg/dia se hipoparatireoidismo ou d\u00e9ficit de vitamina D.');
   }
-  h+=al('w','Sempre dosar e corrigir Mg\u00b2+ \u2014 hipomagnesemia inibe PTH e causa hipocalcemia refrat\u00e1ria ao Ca.');
-  h+=al('d','\u26a0\ufe0f Digit\u00e1licos (digoxina): EVITAR Ca IV \u2014 risco de fibrila\u00e7\u00e3o ventricular. Se necess\u00e1rio: infus\u00e3o lent\u00edssima com ECG cont\u00ednuo.');
-  h+='</div>';
-  show('r-ca',h);
+  else if(naModo === 'vel'){
+    var mlh = fv('namlh');
+    if(!mlh){ show('r-na', al('w','Informe a velocidade em mL/h.')); return; }
+
+    var cH    = d1L * (mlh / 1000);
+    var c24h  = cH * 24;
+    var tMax  = lim / cH;
+    var tAlvo = dAlvo / cH;
+    var tRec  = Math.min(tMax, tAlvo);
+    var cRec  = cH * tRec;
+    var naF   = naA + cRec;
+    var seguro= (c24h <= lim);
+    var volU  = mlh * tRec;
+
+    h += '<div class="nums-grid">' +
+      nb(fmt(cH,2) + ' mEq/L/h', 'velocidade correcao') +
+      nb(fmt(tRec,1) + 'h', seguro ? 'ate o alvo' : 'PARAR aqui') +
+      nb(fmt(naF,1) + ' mEq/L', 'Na+ final esperado') +
+      '</div>';
+
+    var prepHAB2 = isHAB
+      ? '<br>Bolsas HAB: ' + Math.ceil(volU/500) + ' x 500mL | Duracao/bolsa: ' + fmt(500/mlh,1) + 'h'
+      : '';
+    h += rb(seguro ? 'green' : 'amber',
+      'Prescricao &mdash; Velocidade Definida',
+      mlh + ' mL/h por ' + fmt(tRec,1) + 'h &mdash; ' + (seguro ? 'dentro do limite' : 'PARAR ao atingir limite diario'),
+      'Correcao obtida: +' + fmt(cRec,1) + ' mEq/L<br>' +
+      'Volume total utilizado: ' + fmt(volU,0) + ' mL<br>' +
+      'Projecao 24h continuo: ' + fmt(c24h,1) + ' mEq/L (limite: ' + lim + ')' + prepHAB2
+    );
+
+    if(!seguro){
+      h += al('d', 'A ' + mlh + ' mL/h por 24h continuo o Na+ subiria ' + fmt(c24h,1) + ' mEq/L &mdash; acima do limite de ' + lim + '/24h. PARAR apos ' + fmt(tMax,1) + 'h (Na+ ~' + fmt(naA+lim,1) + ' mEq/L). Depois manter com solucao menos concentrada ou suspender e reavaliar.');
+    } else {
+      h += al('s', 'A ' + mlh + ' mL/h a correcao em 24h seria ' + fmt(c24h,1) + ' mEq/L &mdash; dentro do limite de ' + lim + '/24h.');
+    }
+    h += al('i', 'Monitorar Na+ a cada 2&ndash;4h. Suspender ao atingir ' + naAlvo + ' mEq/L (previsao: ' + fmt(tAlvo,1) + 'h a esta velocidade).');
+  }
+  else {
+    var vol = fv('navol');
+    var th  = fv('nath');
+    if(!vol || !th){ show('r-na', al('w','Informe volume e tempo.')); return; }
+
+    var taxaV = vol / th;
+    var cT    = d1L * (vol / 1000);
+    var cHv   = cT / th;
+    var c24v  = cHv * 24;
+    var naFv  = naA + cT;
+    var segV  = (cT <= lim);
+
+    h += '<div class="nums-grid">' +
+      nb('+' + fmt(cT,2) + ' mEq/L', 'elevacao do Na+') +
+      nb(fmt(taxaV,0) + ' mL/h', 'taxa necessaria') +
+      nb(fmt(naFv,1) + ' mEq/L', 'Na+ final esperado') +
+      '</div>';
+
+    var habNote = (isHAB && vol == 500)
+      ? '<br>1 bolsa HAB (500mL) a ' + fmt(taxaV,0) + ' mL/h &rarr; Na+ +' + fmt(cT,2) + ' mEq/L em ' + th + 'h'
+      : '';
+    h += rb(segV ? 'green' : 'amber',
+      'Resultado &mdash; Por Volume',
+      vol + 'mL em ' + th + 'h &rarr; ' + (segV ? 'dentro do limite' : 'ACIMA DO LIMITE'),
+      'Velocidade de correcao: ' + fmt(cHv,2) + ' mEq/L/h<br>' +
+      'Projecao 24h continuo: ' + fmt(c24v,1) + ' mEq/L (limite: ' + lim + ')<br>' +
+      'Volume max. seguro/24h desta solucao: ' + fmt(volMaxDia,0) + ' mL' + habNote
+    );
+
+    if(!segV){
+      h += al('d', vol + 'mL desta solucao eleva Na+ em ' + fmt(cT,2) + ' mEq/L &mdash; acima do limite de ' + lim + '/24h. Volume maximo seguro: ' + fmt(volMaxDia,0) + ' mL/24h.');
+    } else {
+      h += al('s', vol + 'mL em ' + th + 'h esta dentro do limite de seguranca (' + fmt(cT,2) + ' mEq/L &lt; ' + lim + '/24h).');
+    }
+  }
+
+  if(naInf >= 400){ h += al('d', 'Solucao hipertonica &ge; 400 mEq/L: EXCLUSIVAMENTE via CVC. Nunca em PVP &mdash; risco de necrose tecidual.'); }
+  h += al('d', 'LIMITE ABSOLUTO: &le;8&ndash;10 mEq/L em qualquer periodo de 24h. Meta-analise Kidney Medicine 2024 (n=26.710): correcao rapida &rarr; ODS com OR 3,16x. Alto risco: &le;6 mEq/L/24h (ESE/ESICM/ERA-EDTA Guideline).');
+  h += al('w', 'Supercorrecao: SG 5% 3&ndash;5 mL/kg/h +/- desmopressina 2&ndash;4 mcg IV. Monitorar Na+ a cada 2&ndash;4h nas primeiras 24h.');
+
+  show('r-na', h);
+}
+
+/* ================================================================
+   MAGNESIO
+   ================================================================ */
+function calcMg(){
+  var peso = fv('mgp');
+  var mgA  = fv('mga');
+  var grav = sv('mgg');
+  var via  = sv('mgv');
+  var renal= sv('mgr');
+
+  if(!peso || !mgA){ show('r-mg', al('w','Preencha peso e Mg2+ atual.')); return; }
+
+  var deficit  = Math.max(0, 2.0 - mgA);
+  var baseG    = deficit / 0.2 * 2;
+  var maxG     = grav === 'g' ? 8 : grav === 'm' ? 4 : 2;
+  var doseG    = Math.min(baseG, maxG);
+  var dose     = Math.ceil(doseG) || 1;
+  var mEqTotal = dose * 8.1;
+  var tempo    = grav === 'g' ? dose/2 : grav === 'm' ? dose : dose*1.5;
+
+  var h = dblock([
+    dr('Mg2+ atual', mgA + ' mg/dL (normal &ge; 1,8 mg/dL)'),
+    dr('1g MgSO4 eleva soro em', '~+0,2 mg/dL'),
+    dr('Dose calculada', dose + 'g MgSO4 = ' + fmt(mEqTotal,0) + ' mEq')
+  ]);
+
+  if(via === 'ev50'){
+    var n = Math.ceil(dose / 5);
+    h += rb('green',
+      'Prescricao &mdash; MgSO4 50% EV (40,5 mEq/amp)',
+      n + ' amp (' + (n*5) + 'g = ' + fmt(n*40.5,0) + ' mEq)',
+      n + ' amp de 10mL + SF 0,9% q.s.p. 100&ndash;250mL<br>' +
+      'Velocidade maxima: <strong>1g/30min (2g/h)</strong> &rarr; ' + fmt(dose/tempo,1) + 'g/h por ' + fmt(tempo,1) + 'h<br>' +
+      'Aguardar 8&ndash;12h para nova dosagem (redistribuicao tecidual) &mdash; NHS RUH; VUMC Guidelines'
+    );
+    h += al('d', 'MgSO4 50% NUNCA infundir puro &mdash; sempre diluir. Risco de necrose e parada cardiaca.');
+  }
+  else if(via === 'ev10'){
+    h += rb('green',
+      'Prescricao &mdash; MgSO4 10% EV (8,1 mEq/amp)',
+      dose + ' amp (' + dose + 'g = ' + fmt(dose*8.1,0) + ' mEq)',
+      dose + ' amp de 10mL + SF 0,9% q.s.p. 100mL<br>' +
+      'Velocidade maxima: <strong>1g/30min</strong> &rarr; ' + fmt(dose/tempo,1) + 'g/h por ' + fmt(tempo,1) + 'h<br>' +
+      'Aguardar 8&ndash;12h para nova dosagem'
+    );
+  }
+  else {
+    h += rb('purple',
+      'Prescricao &mdash; Via Oral',
+      (grav === 'l' ? '400&ndash;800' : '800&ndash;1200') + ' mg Mg elem/dia',
+      'Oxido Mg 400mg (19,8 mEq/cp) ou Citrato Mg sache (24,7 mEq)<br>' +
+      'Dividir em 2&ndash;3x/dia | Tomar com alimento<br>' +
+      'Citrato: melhor tolerancia GI que oxido. Biodisponibilidade VO: 30&ndash;40%.'
+    );
+  }
+
+  if(renal === 'g'){ h += al('d', 'IR grave (TFG &lt;30): reduzir dose em 25&ndash;50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxicacao (Medscape; NHS RUH PATH_021).'); }
+  if(grav === 'g'){ h += al('d', 'Grave/sintomatico (torsades, convulsao, tetania): 4&ndash;8g EV em 4h. Antidoto de intoxicacao: Gluconato Ca 1g IV.'); }
+  h += al('i', 'Hipocalemia refrataria: corrigir Mg antes/junto &mdash; hipomagnesemia perpetua perda renal de K+.');
+  h += al('w', 'Hipocalcemia concomitante: repor Ca2+ <strong>antes</strong> de iniciar MgSO4 IV &mdash; o ion sulfato complexa Ca2+ ionizado e pode agravar agudamente a hipocalcemia (StatPearls; Medscape).');
+
+  show('r-mg', h);
+}
+
+/* ================================================================
+   CALCIO
+   ================================================================ */
+function calcCa(){
+  var caT  = fv('cat');
+  var alb  = fv('caalb') || 4.0;
+  var caIon= fv('caion');
+  var grav = sv('cag');
+  var via  = sv('cav');
+
+  if(!caT){ show('r-ca', al('w','Preencha Ca2+ total.')); return; }
+
+  var caCorr = caT + 0.8 * (4 - alb);
+  var deficit= Math.max(0, 9.0 - caCorr);
+  var isVO   = (via === 'carb' || via === 'citr');
+  var fMeq   = via === 'clor' ? 13.6 : 4.65;
+  var nAmp   = Math.max(1, Math.round(deficit / 0.5));
+
+  var h = dblock([
+    dr('Ca2+ total medido', caT + ' mg/dL'),
+    dr('Albumina', alb + ' g/dL'),
+    dr('Ca2+ corrigido [Ca + 0,8 x (4 - ' + alb + ')]', '<strong>' + fmt(caCorr,1) + ' mg/dL</strong>'),
+    caIon ? dr('Ca2+ ionizado (usar para decisao)', caIon + ' mmol/L (ref: 1,15&ndash;1,35)') : '',
+    dr('Deficit estimado', fmt(deficit,1) + ' mg/dL')
+  ]);
+
+  if(!isVO){
+    var nomeV = via === 'gluc'
+      ? 'Gluconato Ca 10% &mdash; 4,65 mEq/amp (PVP OK)'
+      : 'Cloreto Ca 10% &mdash; 13,6 mEq/amp (CVC APENAS)';
+    var cls = via === 'clor' ? 'red' : 'blue';
+
+    if(grav === 'g'){
+      h += rb(cls,
+        'Urgencia &mdash; ' + nomeV,
+        nAmp + ' amp (' + nAmp + 'g = ' + fmt(nAmp*fMeq,1) + ' mEq)',
+        nAmp + ' amp em 50&ndash;100mL SF 0,9% &rarr; infundir em <strong>10&ndash;20min</strong><br>' +
+        'Efeito dura 1&ndash;2h &mdash; pode repetir 1&ndash;2x conforme resposta<br>' +
+        'ECG continuo obrigatorio durante infusao (Medscape; GGC Medicines Guideline)'
+      );
+      h += al('d', 'Sintomatico grave (tetania, laringoespasmo, convulsao, arritmia): 1&ndash;2g IV em 10&ndash;20min. Pode repetir 1&ndash;2x.');
+    }
+    else {
+      h += rb(cls,
+        'Prescricao &mdash; ' + nomeV,
+        nAmp + ' amp (' + nAmp + 'g = ' + fmt(nAmp*fMeq,1) + ' mEq)',
+        (nAmp*10) + 'mL + SF 0,9% q.s.p. 100&ndash;250mL<br>' +
+        'Velocidade eletiva: <strong>0,5&ndash;1g/h</strong> &rarr; ' + fmt(nAmp*0.75,1) + '&ndash;' + fmt(nAmp*1.5,1) + 'h<br>' +
+        'Limite absoluto: nao exceder 1g/10min (100mg/min) &mdash; risco bradicardia/assistolia'
+      );
+    }
+    if(via === 'clor'){
+      h += al('d', 'Cloreto Ca: CVC OBRIGATORIO &mdash; caustico, necrose em PVP. 3x mais potente que gluconato. Preferido em PCR e emergencia grave.');
+    } else {
+      h += al('i', 'Gluconato Ca: unico sal de calcio seguro para PVP. Preferivel para reposicao eletiva e moderada.');
+    }
+  }
+  else {
+    var meqCp  = via === 'carb' ? 25 : 10;
+    var nomeVO = via === 'carb'
+      ? 'Carbonato Ca 1250mg (500mg elem/cp = 25 mEq)'
+      : 'Citrato Ca (200mg elem/cp = 10 mEq)';
+    var qnt = (grav === 'l' ? '2&ndash;3' : '3&ndash;4');
+    h += rb('purple',
+      'Prescricao &mdash; Via Oral &mdash; ' + nomeVO,
+      qnt + ' cp/dia = ' + ((grav === 'l' ? 2 : 3)*meqCp) + '&ndash;' + ((grav === 'l' ? 3 : 4)*meqCp) + ' mEq/dia',
+      via === 'carb'
+        ? 'Tomar COM refeicao (requer acidez gastrica). Evitar com IBP sem ajuste. Pode causar constipacao.'
+        : 'Absorcao independente do pH gastrico &mdash; preferivel para pacientes em uso de IBP, gastrectomizados e idosos.'
+    );
+    h += al('w', 'Associar calcitriol 0,25&ndash;0,5 mcg/dia se hipoparatireoidismo ou deficit de vitamina D.');
+  }
+
+  h += al('w', 'Sempre dosar e corrigir Mg2+ &mdash; hipomagnesemia inibe PTH e causa hipocalcemia refrataria ao Ca.');
+  h += al('d', 'Digitalicos (digoxina): EVITAR Ca IV &mdash; risco de fibrilacao ventricular. Se necessario: infusao lentissima com ECG continuo.');
+
+  show('r-ca', h);
 }
 </script>
 </body>
