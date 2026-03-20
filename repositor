@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -345,55 +344,55 @@ function setNaModo(m,el){
   document.getElementById('r-na').innerHTML='';
 }
 
-// ── POTÁSSIO ──
+// -- POTASSIO --
 function calcK(){
   const peso=g('kp'),kA=g('ka'),alvo=g('kalvo')||4.0,via=s('kv'),renal=s('kr');
-  if(!peso||!kA){show('r-k',al('w','Preencha peso e K⁺ atual.'));return}
-  if(kA>=alvo){show('r-k',al('w','K⁺ atual já está no alvo ou acima.'));return}
+  if(!peso||!kA){show('r-k',al('w','Preencha peso e K+ atual.'));return}
+  if(kA>=alvo){show('r-k',al('w','K+ atual j\u00e1 est\u00e1 no alvo ou acima.'));return}
   const deficit=Math.max(0,(alvo-kA)*peso*0.4);
   const limDia=renal==='g'?40:renal==='a'?80:deficit;
   const dose=Math.min(deficit,limDia);
-  let h=`<div class="rcard"><div class="rtitle">Reposição de Potássio</div>
-    <div class="ng">${nb(f(kA,1)+' mEq/L','K⁺ atual')}${nb(f(deficit,0)+' mEq','déficit total')}${nb(f(dose,0)+' mEq','dose 1ª etapa')}</div>`;
-  h+=dr('Fórmula','('+alvo+' − '+kA+') × '+peso+'kg × 0,4 = '+f(deficit,0)+' mEq');
+  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de Pot\u00e1ssio</div>
+    <div class="ng">${nb(f(kA,1)+' mEq/L','K+ atual')}${nb(f(deficit,0)+' mEq','d\u00e9ficit total')}${nb(f(dose,0)+' mEq','dose 1\u00aa etapa')}</div>`;
+  h+=dr('F\u00f3rmula','('+alvo+' - '+kA+') x '+peso+'kg x 0,4 = '+f(deficit,0)+' mEq');
   if(via==='cvc25'){
     const n=Math.ceil(dose/25),vd=Math.max(100,n*50),t=Math.max(1,dose/20);
-    h+=dr('Apresentação','KCl 19,1% — <strong>25 mEq/amp (10mL)</strong>',true);
+    h+=dr('Apresenta\u00e7\u00e3o','KCl 19,1% \u2014 <strong>25 mEq/amp (10mL)</strong>',true);
     h+=dr('Ampolas',n+' amp = '+n*25+' mEq');
-    h+=dr('Diluição',n+' amp ('+n*10+'mL) + SF 0,9% q.s.p. '+vd+'mL → '+f(dose/vd*1000,0)+' mEq/L');
-    h+=dr('Velocidade','Máx. <strong>20 mEq/h</strong> → '+f(vd/t,0)+' mL/h por '+f(t,1)+'h',true);
-    h+=dr('Concentração máx.','200 mEq/L (UTI: até 400 mEq/L com ECG contínuo)');
-    h+=dr('Limite diário','≤ 200–300 mEq/24h');
-    h+=al('w','ECG contínuo se K⁺ &lt;2,5 mEq/L ou taxa >20 mEq/h. Re-dosar K⁺ a cada <strong>4–6h</strong> durante reposição ativa (NHS Grampian 2024) — não repetir dose sem nova medição.');
+    h+=dr('Dilui\u00e7\u00e3o',n+' amp ('+n*10+'mL) + SF 0,9% q.s.p. '+vd+'mL -> '+f(dose/vd*1000,0)+' mEq/L');
+    h+=dr('Velocidade','M\u00e1x. <strong>20 mEq/h</strong> -> '+f(vd/t,0)+' mL/h por '+f(t,1)+'h',true);
+    h+=dr('Concentra\u00e7\u00e3o m\u00e1x.','200 mEq/L (UTI: at\u00e9 400 mEq/L com ECG cont\u00ednuo)');
+    h+=dr('Limite di\u00e1rio','<= 200\u2013300 mEq/24h');
+    h+=al('w','ECG cont\u00ednuo se K+ &lt;2,5 mEq/L ou taxa >20 mEq/h. Re-dosar K+ a cada <strong>4\u20136h</strong> durante reposi\u00e7\u00e3o ativa (NHS Grampian 2024) \u2014 n\u00e3o repetir dose sem nova medi\u00e7\u00e3o.');
   } else if(via==='pvp20'){
     const n=Math.ceil(dose/20),t=Math.max(1,dose/10);
-    h+=dr('Apresentação','Bolsa SF + KCl — <strong>20 mEq/100mL</strong> (padrão PVP)',true);
-    h+=dr('Bolsas',n+' × 100mL = '+n*20+' mEq');
-    h+=dr('Velocidade','Máx. <strong>10 mEq/h</strong> → 50 mL/h (2h/bolsa)',true);
-    h+=dr('Concentração máx. PVP','<strong>40 mEq/L</strong> = limite conservador (NHS 2024). A bolsa 20 mEq/100mL (=200 mEq/L) excede esse limite teórico mas é aceita clinicamente — infundir lentamente e em veia calibrosa');
-    h+=dr('Re-dosagem','Aguardar ≥1h após término antes de coletar novo K⁺');
+    h+=dr('Apresenta\u00e7\u00e3o','Bolsa SF + KCl \u2014 <strong>20 mEq/100mL</strong> (padr\u00e3o PVP)',true);
+    h+=dr('Bolsas',n+' x 100mL = '+n*20+' mEq');
+    h+=dr('Velocidade','M\u00e1x. <strong>10 mEq/h</strong> -> 50 mL/h (2h/bolsa)',true);
+    h+=dr('Concentra\u00e7\u00e3o m\u00e1x. PVP','<strong>40 mEq/L</strong> = limite conservador (NHS 2024). A bolsa 20 mEq/100mL (=200 mEq/L) excede esse limite te\u00f3rico mas \u00e9 aceita clinicamente \u2014 infundir lentamente e em veia calibrosa');
+    h+=dr('Re-dosagem','Aguardar >=1h ap\u00f3s t\u00e9rmino antes de coletar novo K+');
     h+=al('w','Dose >80 mEq: migrar para CVC. PVP: preferir sempre 20 mEq/100mL.');
   } else {
     const meq={'vox':8,'vos':8,'vok':20}[via];
-    const nome={'vox':'KCl Xarope 6% — 8 mEq/5mL','vos':'Slow-K® — 8 mEq/cp','vok':'Kaleorid® LP — 20 mEq/cp'}[via];
+    const nome={'vox':'KCl Xarope 6% \u2014 8 mEq/5mL','vos':'Slow-K\u00ae \u2014 8 mEq/cp','vok':'Kaleorid\u00ae LP \u2014 20 mEq/cp'}[via];
     const un={'vox':'doses de 5mL','vos':'comprimido(s)','vok':'comprimido(s)'}[via];
     const n=Math.ceil(dose/meq);
-    h+=dr('Apresentação',nome,true);
+    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
     h+=dr('Quantidade',n+' '+un+' = '+n*meq+' mEq');
-    h+=dr('Posologia','Dividir em 2–4×/dia — tomar com refeição');
-    h+=dr('Dose máx. VO','40–100 mEq/dia');
-    h+=dr('Re-dosagem','Aguardar ≥2h após dose oral antes de coletar novo K⁺');
-    h+=al('i','VO preferível quando tolerada. Menor risco de arritmia e flebite.');
+    h+=dr('Posologia','Dividir em 2\u20134x/dia \u2014 tomar com refei\u00e7\u00e3o');
+    h+=dr('Dose m\u00e1x. VO','40\u2013100 mEq/dia');
+    h+=dr('Re-dosagem','Aguardar >=2h ap\u00f3s dose oral antes de coletar novo K+');
+    h+=al('i','VO prefer\u00edvel quando tolerada. Menor risco de arritmia e flebite.');
   }
   h+='</div>';
-  if(renal!=='n') h+=al('d','IR: risco de hipercalemia de rebote. Limite '+(renal==='g'?40:80)+' mEq/24h. K⁺ a cada 2–4h.');
-  if(kA<2.5) h+=al('d','Hipocalemia grave (&lt;2,5 mEq/L): ECG contínuo obrigatório. Considerar UTI.');
-  if(kA<3.0) h+=al('w','DKA / cetoacidose diabética: velocidades de 40–60 mEq/h podem ser necessárias com monitoração horária do K⁺ — avaliar individualmente.');
-  h+=al('w','⚠️ Sempre corrigir Mg²⁺ concomitante — hipomagnesemia perpetua perda renal de K⁺ e torna a correção refratária.');
+  if(renal!=='n') h+=al('d','IR: risco de hipercalemia de rebote. Limite '+(renal==='g'?40:80)+' mEq/24h. K+ a cada 2\u20134h.');
+  if(kA<2.5) h+=al('d','Hipocalemia grave (&lt;2,5 mEq/L): ECG cont\u00ednuo obrigat\u00f3rio. Considerar UTI.');
+  if(kA<3.0) h+=al('w','DKA / cetoacidose diab\u00e9tica: velocidades de 40\u201360 mEq/h podem ser necess\u00e1rias com monitora\u00e7\u00e3o hor\u00e1ria do K+ \u2014 avaliar individualmente.');
+  h+=al('w','\u26a0\ufe0f Sempre corrigir Mg\u00b2+ concomitante \u2014 hipomagnesemia perpetua perda renal de K+ e torna a corre\u00e7\u00e3o refrat\u00e1ria.');
   show('r-k',h);
 }
 
-// ── SÓDIO ──
+// -- SODIO --
 function calcNa(){
   const peso=g('nap'),naA=g('naa'),naAlvo=g('naalvo');
   const tbw=peso*parseFloat(s('natbw'));
@@ -401,78 +400,78 @@ function calcNa(){
   const lim=parseFloat(s('nalim'));
   const via=s('navia');
   const isHAB=naInf===494;
-  if(!peso||!naA||!naAlvo){show('r-na',al('w','Preencha peso, Na⁺ atual e alvo.'));return}
-  if(naAlvo<=naA){show('r-na',al('w','Na⁺ alvo deve ser maior que o atual.'));return}
-  if(naInf>=400&&via==='pvp'){show('r-na',al('d','Solução hipertônica não pode ser administrada em PVP.'));return}
+  if(!peso||!naA||!naAlvo){show('r-na',al('w','Preencha peso, Na+ atual e alvo.'));return}
+  if(naAlvo<=naA){show('r-na',al('w','Na+ alvo deve ser maior que o atual.'));return}
+  if(naInf>=400&&via==='pvp'){show('r-na',al('d','Solu\u00e7\u00e3o hipert\u00f4nica n\u00e3o pode ser administrada em PVP.'));return}
   const d1L=(naInf-naA)/(tbw+1);
   const dAlvo=naAlvo-naA;
   const volMaxDia=(lim/d1L)*1000;
-  const taxaMaxMlh=volMaxDia/24; // mL/h máximo seguro para esta solução NESTE paciente
+  const taxaMaxMlh=volMaxDia/24; // mL/h maximo seguro para esta solucao NESTE paciente
 
-  let h=`<div class="rcard"><div class="rtitle">Parâmetros — Adrogué-Madias</div>`;
-  h+=dr('TBW estimado',f(tbw,1)+' L ('+peso+'kg × '+s('natbw')+')');
-  h+=dr('ΔNa por litro de infusato','<strong>+'+f(d1L,2)+' mEq/L</strong> por litro',true);
-  h+=dr('Correção total necessária',f(dAlvo,1)+' mEq/L ('+naA+' → '+naAlvo+')');
-  h+=dr('Volume máx. seguro / 24h',f(volMaxDia,0)+' mL desta solução',true);
-  h+=dr('Taxa máx. segura para este paciente','<strong>'+f(taxaMaxMlh,0)+' mL/h</strong> contínuo',true);
-  if(isHAB) h+=dr('Referência HAB',''+f(taxaMaxMlh,0)+' mL/h = '+f(taxaMaxMlh/500*247,1)+' mEq Na/h desta solução');
+  let h=`<div class="rcard"><div class="rtitle">Par\u00e2metros \u2014 Adrogu\u00e9-Madias</div>`;
+  h+=dr('TBW estimado',f(tbw,1)+' L ('+peso+'kg x '+s('natbw')+')');
+  h+=dr('\u0394Na por litro de infusato','<strong>+'+f(d1L,2)+' mEq/L</strong> por litro',true);
+  h+=dr('Corre\u00e7\u00e3o total necess\u00e1ria',f(dAlvo,1)+' mEq/L ('+naA+' -> '+naAlvo+')');
+  h+=dr('Volume m\u00e1x. seguro / 24h',f(volMaxDia,0)+' mL desta solu\u00e7\u00e3o',true);
+  h+=dr('Taxa m\u00e1x. segura para este paciente','<strong>'+f(taxaMaxMlh,0)+' mL/h</strong> cont\u00ednuo',true);
+  if(isHAB) h+=dr('Refer\u00eancia HAB',''+f(taxaMaxMlh,0)+' mL/h = '+f(taxaMaxMlh/500*247,1)+' mEq Na/h desta solu\u00e7\u00e3o');
   h+='</div>';
 
   if(naModo==='24h'){
     const c24=Math.min(dAlvo,lim),v24=c24/d1L,taxa=v24*1000/24,vH=d1L*(taxa/1000);
-    h+=`<div class="rcard"><div class="rtitle">Prescrição — 24h</div>
-      <div class="ng">${nb(f(taxa,0)+' mL/h','taxa de infusão')}${nb('+'+f(c24,1)+' mEq/L','correção em 24h')}${nb(f(naA+c24,1)+' mEq/L','Na⁺ ao final')}</div>`;
-    h+=dr('Infusão',f(taxa,0)+' mL/h contínuo × 24h',true);
-    h+=dr('Velocidade de correção','~'+f(vH,2)+' mEq/L/h');
+    h+=`<div class="rcard"><div class="rtitle">Prescri\u00e7\u00e3o \u2014 24h</div>
+      <div class="ng">${nb(f(taxa,0)+' mL/h','taxa de infus\u00e3o')}${nb('+'+f(c24,1)+' mEq/L','corre\u00e7\u00e3o em 24h')}${nb(f(naA+c24,1)+' mEq/L','Na+ ao final')}</div>`;
+    h+=dr('Infus\u00e3o',f(taxa,0)+' mL/h cont\u00ednuo x 24h',true);
+    h+=dr('Velocidade de corre\u00e7\u00e3o','~'+f(vH,2)+' mEq/L/h');
     h+=dr('Volume total 24h',f(v24,2)+' L = '+f(v24*1000,0)+' mL');
-    if(isHAB){const nb2=Math.ceil(v24*1000/500);h+=sub('🏥 Preparo — HAB',[['Bolsas',nb2+' × 500mL (SF 390mL + 11amp NaCl 10%)'],['Duração/bolsa',f(500/taxa,1)+'h a '+f(taxa,0)+' mL/h']])}
-    else if(naInf===154){h+=sub('📦 SF 0,9%',[['Bolsas 500mL',Math.ceil(v24/0.5)+' bolsa(s)'],['Bolsas 1000mL',Math.ceil(v24)+' bolsa(s)']])}
-    if(dAlvo>lim) h+=al('w','Alvo não atingido em 24h pelo limite de segurança. Tempo total estimado: ~'+f(dAlvo/vH,0)+'h. Reavaliar a cada 24h.');
+    if(isHAB){const nb2=Math.ceil(v24*1000/500);h+=sub('\u1f3e5 Preparo \u2014 HAB',[['Bolsas',nb2+' x 500mL (SF 390mL + 11amp NaCl 10%)'],['Dura\u00e7\u00e3o/bolsa',f(500/taxa,1)+'h a '+f(taxa,0)+' mL/h']])}
+    else if(naInf===154){h+=sub('\u1f4e6 SF 0,9%',[['Bolsas 500mL',Math.ceil(v24/0.5)+' bolsa(s)'],['Bolsas 1000mL',Math.ceil(v24)+' bolsa(s)']])}
+    if(dAlvo>lim) h+=al('w','Alvo n\u00e3o atingido em 24h pelo limite de seguran\u00e7a. Tempo total estimado: ~'+f(dAlvo/vH,0)+'h. Reavaliar a cada 24h.');
     h+='</div>';
   } else if(naModo==='vel'){
     const mlh=g('namlh');
     if(!mlh){show('r-na',al('w','Informe a velocidade em mL/h.'));return}
     const cH=d1L*(mlh/1000),c24h=cH*24,tMax=lim/cH,tAlvo=dAlvo/cH,tRec=Math.min(tMax,tAlvo);
     const cRec=cH*tRec,naF=naA+cRec,seguro=c24h<=lim,vol=mlh*tRec;
-    h+=`<div class="rcard"><div class="rtitle">Prescrição — Velocidade Definida</div>
-      <div class="ng">${nb(f(cH,2)+' mEq/L/h','velocidade correção')}${nb(f(tRec,1)+'h',seguro?'até o alvo':'máx. seguro')}${nb(f(naF,1)+' mEq/L','Na⁺ final')}</div>`;
-    h+=dr('Velocidade solicitada',mlh+' mL/h (taxa máx. segura: '+f(taxaMaxMlh,0)+' mL/h)',!seguro);
-    h+=dr('Infundir por',f(tRec,1)+'h '+(seguro?'(alvo atingido)':'→ PARAR (limite diário)'),true);
-    h+=dr('Correção obtida','+'+f(cRec,1)+' mEq/L');
+    h+=`<div class="rcard"><div class="rtitle">Prescri\u00e7\u00e3o \u2014 Velocidade Definida</div>
+      <div class="ng">${nb(f(cH,2)+' mEq/L/h','velocidade corre\u00e7\u00e3o')}${nb(f(tRec,1)+'h',seguro?'at\u00e9 o alvo':'m\u00e1x. seguro')}${nb(f(naF,1)+' mEq/L','Na+ final')}</div>`;
+    h+=dr('Velocidade solicitada',mlh+' mL/h (taxa m\u00e1x. segura: '+f(taxaMaxMlh,0)+' mL/h)',!seguro);
+    h+=dr('Infundir por',f(tRec,1)+'h '+(seguro?'(alvo atingido)':'-> PARAR (limite di\u00e1rio)'),true);
+    h+=dr('Corre\u00e7\u00e3o obtida','+'+f(cRec,1)+' mEq/L');
     h+=dr('Volume total',f(vol,0)+' mL');
-    h+=dr('Projeção 24h contínuo',f(c24h,1)+' mEq/L (limite: '+lim+')');
-    if(isHAB){const nb2=Math.ceil(vol/500);h+=sub('🏥 Preparo — HAB',[['Bolsas',nb2+' × 500mL'],['Duração/bolsa',f(500/mlh,1)+'h']])}
-    if(!seguro){h+=al('d','⚠️ '+mlh+' mL/h por 24h → Na⁺ subiria '+f(c24h,1)+' mEq/L — acima do limite de '+lim+'/24h. PARAR após '+f(tMax,1)+'h (Na⁺ ~ '+f(naA+lim,1)+' mEq/L). Taxa máx. segura para este paciente: '+f(taxaMaxMlh,0)+' mL/h.')}
-    else{h+=al('s','✓ '+mlh+' mL/h = '+f(c24h,1)+' mEq/L/24h — dentro do limite de '+lim+'/24h.')}
-    h+=al('i','Monitorar Na⁺ a cada 2–4h. Suspender ao atingir '+naAlvo+' mEq/L (previsão: '+f(tAlvo,1)+'h).');
+    h+=dr('Proje\u00e7\u00e3o 24h cont\u00ednuo',f(c24h,1)+' mEq/L (limite: '+lim+')');
+    if(isHAB){const nb2=Math.ceil(vol/500);h+=sub('\u1f3e5 Preparo \u2014 HAB',[['Bolsas',nb2+' x 500mL'],['Dura\u00e7\u00e3o/bolsa',f(500/mlh,1)+'h']])}
+    if(!seguro){h+=al('d','\u26a0\ufe0f '+mlh+' mL/h por 24h -> Na+ subiria '+f(c24h,1)+' mEq/L \u2014 acima do limite de '+lim+'/24h. PARAR ap\u00f3s '+f(tMax,1)+'h (Na+ ~ '+f(naA+lim,1)+' mEq/L). Taxa m\u00e1x. segura para este paciente: '+f(taxaMaxMlh,0)+' mL/h.')}
+    else{h+=al('s','\u2713 '+mlh+' mL/h = '+f(c24h,1)+' mEq/L/24h \u2014 dentro do limite de '+lim+'/24h.')}
+    h+=al('i','Monitorar Na+ a cada 2\u20134h. Suspender ao atingir '+naAlvo+' mEq/L (previs\u00e3o: '+f(tAlvo,1)+'h).');
     h+='</div>';
   } else {
     const vol=g('navol'),th=g('nath');
     if(!vol||!th){show('r-na',al('w','Informe volume e tempo.'));return}
     const taxa=vol/th,cT=d1L*(vol/1000),cH=cT/th,c24=cH*24,naF=naA+cT,seguro=cT<=lim;
-    h+=`<div class="rcard"><div class="rtitle">Resultado — Por Volume</div>
-      <div class="ng">${nb('+'+f(cT,2)+' mEq/L','elevação do Na⁺')}${nb(f(taxa,0)+' mL/h','taxa necessária')}${nb(f(naF,1)+' mEq/L','Na⁺ final')}</div>`;
+    h+=`<div class="rcard"><div class="rtitle">Resultado \u2014 Por Volume</div>
+      <div class="ng">${nb('+'+f(cT,2)+' mEq/L','eleva\u00e7\u00e3o do Na+')}${nb(f(taxa,0)+' mL/h','taxa necess\u00e1ria')}${nb(f(naF,1)+' mEq/L','Na+ final')}</div>`;
     h+=dr('Volume / tempo',vol+'mL em '+th+'h',true);
-    h+=dr('Velocidade de correção',f(cH,2)+' mEq/L/h');
-    h+=dr('Projeção 24h contínuo',f(c24,1)+' mEq/L (limite: '+lim+')');
-    h+=dr('Taxa máx. segura para este paciente',f(taxaMaxMlh,0)+' mL/h desta solução',true);
-    h+=dr('Volume máx. seguro/24h',f(volMaxDia,0)+' mL desta solução');
-    if(isHAB&&vol==500) h+=al('i','1 bolsa HAB (500mL) a '+f(taxa,0)+' mL/h → Na⁺ +'+f(cT,2)+' mEq/L em '+th+'h.');
-    if(!seguro){h+=al('d','⚠️ '+vol+'mL desta solução eleva Na⁺ em '+f(cT,2)+' mEq/L — acima do limite de '+lim+'/24h. Máx. seguro: '+f(volMaxDia,0)+' mL/24h.')}
-    else{h+=al('s','✓ '+vol+'mL em '+th+'h — dentro do limite de segurança.')}
+    h+=dr('Velocidade de corre\u00e7\u00e3o',f(cH,2)+' mEq/L/h');
+    h+=dr('Proje\u00e7\u00e3o 24h cont\u00ednuo',f(c24,1)+' mEq/L (limite: '+lim+')');
+    h+=dr('Taxa m\u00e1x. segura para este paciente',f(taxaMaxMlh,0)+' mL/h desta solu\u00e7\u00e3o',true);
+    h+=dr('Volume m\u00e1x. seguro/24h',f(volMaxDia,0)+' mL desta solu\u00e7\u00e3o');
+    if(isHAB&&vol==500) h+=al('i','1 bolsa HAB (500mL) a '+f(taxa,0)+' mL/h -> Na+ +'+f(cT,2)+' mEq/L em '+th+'h.');
+    if(!seguro){h+=al('d','\u26a0\ufe0f '+vol+'mL desta solu\u00e7\u00e3o eleva Na+ em '+f(cT,2)+' mEq/L \u2014 acima do limite de '+lim+'/24h. M\u00e1x. seguro: '+f(volMaxDia,0)+' mL/24h.')}
+    else{h+=al('s','\u2713 '+vol+'mL em '+th+'h \u2014 dentro do limite de seguran\u00e7a.')}
     h+='</div>';
   }
 
-  if(naInf>=400) h+=al('d','Solução hipertônica ≥400 mEq/L: EXCLUSIVAMENTE via CVC.');
-  h+=al('d','LIMITE ABSOLUTO: ≤8–10 mEq/L/24h — risco de Síndrome de Desmielinização Osmótica (ODS). Meta-análise 2024 (n=26.710): correção rápida → OR 3,16×. Alto risco: ≤6 mEq/L/24h.');
-  h+=al('w','Supercorreção: SG 5% 3–5 mL/kg/h ± desmopressina 2–4 mcg IV para "frear". Monitorar Na⁺ a cada 2–4h.');
+  if(naInf>=400) h+=al('d','Solu\u00e7\u00e3o hipert\u00f4nica >=400 mEq/L: EXCLUSIVAMENTE via CVC.');
+  h+=al('d','LIMITE ABSOLUTO: <=8\u201310 mEq/L/24h \u2014 risco de S\u00edndrome de Desmieliniza\u00e7\u00e3o Osm\u00f3tica (ODS). Meta-an\u00e1lise 2024 (n=26.710): corre\u00e7\u00e3o r\u00e1pida -> OR 3,16x. Alto risco: <=6 mEq/L/24h.');
+  h+=al('w','Supercorre\u00e7\u00e3o: SG 5% 3\u20135 mL/kg/h \u00b1 desmopressina 2\u20134 mcg IV para "frear". Monitorar Na+ a cada 2\u20134h.');
   show('r-na',h);
 }
 
-// ── MAGNÉSIO ──
+// -- MAGNESIO --
 function calcMg(){
   const peso=g('mgp'),mgA=g('mga'),grav=s('mgg'),via=s('mgv'),renal=s('mgr');
-  if(!peso||!mgA){show('r-mg',al('w','Preencha peso e Mg²⁺ atual.'));return}
+  if(!peso||!mgA){show('r-mg',al('w','Preencha peso e Mg\u00b2+ atual.'));return}
   const deficit=Math.max(0,2.0-mgA);
   const baseG=deficit/0.2*2;
   const maxG=grav==='g'?8:grav==='m'?4:2;
@@ -480,79 +479,79 @@ function calcMg(){
   const doseArred=Math.ceil(doseG)||1;
   const mEqTotal=doseArred*8.1;
   const tempo=grav==='g'?doseArred/2:grav==='m'?doseArred:doseArred*1.5;
-  let h=`<div class="rcard"><div class="rtitle">Reposição de Magnésio</div>
-    <div class="ng">${nb(mgA+' mg/dL','Mg²⁺ atual')}${nb(doseArred+'g','dose MgSO₄')}${nb(f(mEqTotal,0)+' mEq','total em mEq')}</div>`;
-  h+=dr('Normal','≥ 1,8 mg/dL (0,74 mmol/L)');
-  h+=dr('1g MgSO₄ aumenta','~+0,2 mg/dL sérico');
+  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de Magn\u00e9sio</div>
+    <div class="ng">${nb(mgA+' mg/dL','Mg\u00b2+ atual')}${nb(doseArred+'g','dose MgSO\u2084')}${nb(f(mEqTotal,0)+' mEq','total em mEq')}</div>`;
+  h+=dr('Normal','>= 1,8 mg/dL (0,74 mmol/L)');
+  h+=dr('1g MgSO\u2084 aumenta','~+0,2 mg/dL s\u00e9rico');
   if(via==='ev50'){
     const n=Math.ceil(doseArred/5);
-    h+=dr('Apresentação','MgSO₄ 50% — <strong>5g/10mL = 40,5 mEq/amp</strong>',true);
+    h+=dr('Apresenta\u00e7\u00e3o','MgSO\u2084 50% \u2014 <strong>5g/10mL = 40,5 mEq/amp</strong>',true);
     h+=dr('Ampolas',n+' amp de 10mL = '+n*5+'g = '+f(n*40.5,0)+' mEq');
-    h+=dr('Diluição obrigatória',n*10+'mL + SF 0,9% q.s.p. 100–250mL');
-    h+=dr('Velocidade','Máx. 1g/30min (2g/h) → '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
-    h+=al('d','⚠️ MgSO₄ 50% NUNCA infundir puro — sempre diluir. Risco de necrose tecidual e parada cardíaca.');
+    h+=dr('Dilui\u00e7\u00e3o obrigat\u00f3ria',n*10+'mL + SF 0,9% q.s.p. 100\u2013250mL');
+    h+=dr('Velocidade','M\u00e1x. 1g/30min (2g/h) -> '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
+    h+=al('d','\u26a0\ufe0f MgSO\u2084 50% NUNCA infundir puro \u2014 sempre diluir. Risco de necrose tecidual e parada card\u00edaca.');
   } else if(via==='ev10'){
-    h+=dr('Apresentação','MgSO₄ 10% — <strong>1g/10mL = 8,1 mEq/amp</strong>',true);
+    h+=dr('Apresenta\u00e7\u00e3o','MgSO\u2084 10% \u2014 <strong>1g/10mL = 8,1 mEq/amp</strong>',true);
     h+=dr('Ampolas',doseArred+' amp = '+doseArred+'g = '+f(doseArred*8.1,0)+' mEq');
-    h+=dr('Diluição',doseArred*10+'mL + SF q.s.p. 100mL');
-    h+=dr('Velocidade','Máx. 1g/30min → '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
+    h+=dr('Dilui\u00e7\u00e3o',doseArred*10+'mL + SF q.s.p. 100mL');
+    h+=dr('Velocidade','M\u00e1x. 1g/30min -> '+f(doseArred/tempo,1)+'g/h por '+f(tempo,1)+'h',true);
   } else {
-    h+=dr('Óxido Mg 400mg/cp','19,8 mEq/cp → '+Math.ceil(doseArred/0.4)+' cp/dia');
-    h+=dr('Citrato Mg (sachê/cp)','24,7 mEq/dose → '+Math.ceil(doseArred/0.3)+' doses/dia');
-    h+=dr('Posologia','Dividir em 2–3×/dia — tomar com alimento');
-    h+=al('w','VO: biodisponibilidade 30–40%. Citrato tem melhor tolerância GI que óxido. Diarreia é limitante.');
+    h+=dr('\u00d3xido Mg 400mg/cp','19,8 mEq/cp -> '+Math.ceil(doseArred/0.4)+' cp/dia');
+    h+=dr('Citrato Mg (sach\u00ea/cp)','24,7 mEq/dose -> '+Math.ceil(doseArred/0.3)+' doses/dia');
+    h+=dr('Posologia','Dividir em 2\u20133x/dia \u2014 tomar com alimento');
+    h+=al('w','VO: biodisponibilidade 30\u201340%. Citrato tem melhor toler\u00e2ncia GI que \u00f3xido. Diarreia \u00e9 limitante.');
   }
-  if(renal==='g') h+=al('d','IR grave: reduzir dose em 50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxicação por Mg.');
-  if(grav==='g') h+=al('d','Grave/sintomático (torsades, convulsão, tetania): 2–4g IV em 5–10 min; se persistir: 4–8g em 4h. Antídoto: Gluconato Ca 1g IV.');
-  h+=al('w','⚠️ Hipocalcemia concomitante: MgSO₄ IV complexa Ca²⁺ ionizado e pode piorar hipocalcemia. Se Ca²⁺ baixo: repor Ca antes ou junto do Mg.');
-  h+=al('i','Aguardar 8–12h após infusão para nova dosagem (redistribuição tecidual). Hipocalemia refratária → corrigir Mg antes/junto.');
-  h+=al('w','⚠️ Hipocalcemia concomitante: repor Ca²⁺ <strong>antes</strong> de iniciar MgSO₄ IV — o íon sulfato complexa Ca²⁺ ionizado e pode agravar agudamente a hipocalcemia (StatPearls; Medscape).');
+  if(renal==='g') h+=al('d','IR grave: reduzir dose em 50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxica\u00e7\u00e3o por Mg.');
+  if(grav==='g') h+=al('d','Grave/sintom\u00e1tico (torsades, convuls\u00e3o, tetania): 2\u20134g IV em 5\u201310 min; se persistir: 4\u20138g em 4h. Ant\u00eddoto: Gluconato Ca 1g IV.');
+  h+=al('w','\u26a0\ufe0f Hipocalcemia concomitante: MgSO\u2084 IV complexa Ca\u00b2+ ionizado e pode piorar hipocalcemia. Se Ca\u00b2+ baixo: repor Ca antes ou junto do Mg.');
+  h+=al('i','Aguardar 8\u201312h ap\u00f3s infus\u00e3o para nova dosagem (redistribui\u00e7\u00e3o tecidual). Hipocalemia refrat\u00e1ria -> corrigir Mg antes/junto.');
+  h+=al('w','\u26a0\ufe0f Hipocalcemia concomitante: repor Ca\u00b2+ <strong>antes</strong> de iniciar MgSO\u2084 IV \u2014 o \u00edon sulfato complexa Ca\u00b2+ ionizado e pode agravar agudamente a hipocalcemia (StatPearls; Medscape).');
   h+='</div>';
   show('r-mg',h);
 }
 
-// ── CÁLCIO ──
+// -- CALCIO --
 function calcCa(){
   const caT=g('cat'),alb=g('caalb'),caIon=g('caion'),grav=s('cag'),via=s('cav');
-  if(!caT){show('r-ca',al('w','Preencha Ca²⁺ total.'));return}
+  if(!caT){show('r-ca',al('w','Preencha Ca\u00b2+ total.'));return}
   const caCorr=caT+0.8*(4-alb);
   const deficit=Math.max(0,9.0-caCorr);
   const isVO=via==='carb'||via==='citr';
   const fMeq=via==='clor'?13.6:4.65;
   const nAmp=Math.max(1,Math.round(deficit/0.5));
-  let h=`<div class="rcard"><div class="rtitle">Reposição de Cálcio</div>
-    <div class="ng">${nb(caT+' mg/dL','Ca²⁺ total')}${nb(f(caCorr,1)+' mg/dL','Ca²⁺ corrigido')}${nb(f(deficit,1)+' mg/dL','déficit estimado')}</div>`;
-  h+=dr('Ca²⁺ corrigido pela albumina',f(caCorr,1)+' mg/dL [Ca + 0,8×(4−'+alb+')]',true);
-  if(caIon>0) h+=dr('Ca²⁺ ionizado',caIon+' mmol/L (ref: 1,15–1,35 — usar para decisão)',true);
+  let h=`<div class="rcard"><div class="rtitle">Reposi\u00e7\u00e3o de C\u00e1lcio</div>
+    <div class="ng">${nb(caT+' mg/dL','Ca\u00b2+ total')}${nb(f(caCorr,1)+' mg/dL','Ca\u00b2+ corrigido')}${nb(f(deficit,1)+' mg/dL','d\u00e9ficit estimado')}</div>`;
+  h+=dr('Ca\u00b2+ corrigido pela albumina',f(caCorr,1)+' mg/dL [Ca + 0,8x(4-'+alb+')]',true);
+  if(caIon>0) h+=dr('Ca\u00b2+ ionizado',caIon+' mmol/L (ref: 1,15\u20131,35 \u2014 usar para decis\u00e3o)',true);
   if(!isVO){
-    const nome=via==='gluc'?'Gluconato Ca 10% — 4,65 mEq/amp (PVP OK)':'Cloreto Ca 10% — 13,6 mEq/amp (CVC APENAS)';
-    h+=dr('Apresentação',nome,true);
+    const nome=via==='gluc'?'Gluconato Ca 10% \u2014 4,65 mEq/amp (PVP OK)':'Cloreto Ca 10% \u2014 13,6 mEq/amp (CVC APENAS)';
+    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
     h+=dr('Dose',nAmp+' amp = '+nAmp+'g = <strong>'+f(nAmp*fMeq,1)+' mEq</strong>');
     if(grav==='g'){
-      h+=dr('Urgência',nAmp+' amp em 50–100mL SF → infundir em <strong>10–20min</strong>',true);
-      h+=al('d','Sintomático grave (tetania, laringoespasmo, convulsão, arritmia): 1–2g IV em 10–20min com ECG contínuo. Pode repetir 1–2×. Efeito dura 1–2h.');
+      h+=dr('Urg\u00eancia',nAmp+' amp em 50\u2013100mL SF -> infundir em <strong>10\u201320min</strong>',true);
+      h+=al('d','Sintom\u00e1tico grave (tetania, laringoespasmo, convuls\u00e3o, arritmia): 1\u20132g IV em 10\u201320min com ECG cont\u00ednuo. Pode repetir 1\u20132x. Efeito dura 1\u20132h.');
     } else if(grav==='m'){
-      h+=dr('Diluição',nAmp*10+'mL + SF q.s.p. 100–250mL');
-      h+=dr('Velocidade eletiva','<strong>0,5–1g/h</strong> → '+f(nAmp,0)+' amp em '+f(nAmp*0.75,1)+'–'+f(nAmp*1.5,1)+'h',true);
-      h+=dr('Limite absoluto','não exceder 1g/10min (100mg/min) — risco bradicardia/assistolia');
+      h+=dr('Dilui\u00e7\u00e3o',nAmp*10+'mL + SF q.s.p. 100\u2013250mL');
+      h+=dr('Velocidade eletiva','<strong>0,5\u20131g/h</strong> -> '+f(nAmp,0)+' amp em '+f(nAmp*0.75,1)+'\u2013'+f(nAmp*1.5,1)+'h',true);
+      h+=dr('Limite absoluto','n\u00e3o exceder 1g/10min (100mg/min) \u2014 risco bradicardia/assistolia');
     } else {
-      h+=dr('Diluição',nAmp*10+'mL + SF q.s.p. 100–250mL');
-      h+=dr('Velocidade eletiva','<strong>0,5–1g/h</strong> — infusão lenta em '+f(nAmp,0)+'–'+f(nAmp*2,0)+'h',true);
-      h+=dr('Limite absoluto','não exceder <strong>1g/10min (100mg/min)</strong> — risco bradicardia/assistolia');
+      h+=dr('Dilui\u00e7\u00e3o',nAmp*10+'mL + SF q.s.p. 100\u2013250mL');
+      h+=dr('Velocidade eletiva','<strong>0,5\u20131g/h</strong> \u2014 infus\u00e3o lenta em '+f(nAmp,0)+'\u2013'+f(nAmp*2,0)+'h',true);
+      h+=dr('Limite absoluto','n\u00e3o exceder <strong>1g/10min (100mg/min)</strong> \u2014 risco bradicardia/assistolia');
     }
-    if(via==='clor') h+=al('d','Cloreto Ca: CVC OBRIGATÓRIO — altamente cáustico, necrose em PVP. 3× mais potente que gluconato. Preferido em PCR e emergência grave.');
-    else h+=al('i','Gluconato Ca: único sal seguro para PVP. Preferível para reposição eletiva e moderada.');
+    if(via==='clor') h+=al('d','Cloreto Ca: CVC OBRIGAT\u00d3RIO \u2014 altamente c\u00e1ustico, necrose em PVP. 3x mais potente que gluconato. Preferido em PCR e emerg\u00eancia grave.');
+    else h+=al('i','Gluconato Ca: \u00fanico sal seguro para PVP. Prefer\u00edvel para reposi\u00e7\u00e3o eletiva e moderada.');
   } else {
     const meqCp=via==='carb'?25:10;
     const nome=via==='carb'?'Carbonato Ca 1250mg (500mg elem/cp = 25 mEq)':'Citrato Ca (200mg elem/cp = 10 mEq)';
-    h+=dr('Apresentação',nome,true);
-    h+=dr('Posologia',(grav==='l'?'2–3':'3–4')+' cp/dia = '+((grav==='l'?2:3)*meqCp)+'–'+((grav==='l'?3:4)*meqCp)+' mEq/dia');
-    if(via==='carb') h+=al('i','Carbonato: tomar COM refeição (requer acidez gástrica). Evitar com IBP sem ajuste. Pode causar constipação.');
-    else h+=al('i','Citrato: absorção independente do pH — preferível com IBP, gastrectomizados e idosos. Melhor tolerância GI.');
-    h+=al('w','Associar calcitriol 0,25–0,5 mcg/dia se hipoparatireoidismo ou déficit de vitamina D.');
+    h+=dr('Apresenta\u00e7\u00e3o',nome,true);
+    h+=dr('Posologia',(grav==='l'?'2\u20133':'3\u20134')+' cp/dia = '+((grav==='l'?2:3)*meqCp)+'\u2013'+((grav==='l'?3:4)*meqCp)+' mEq/dia');
+    if(via==='carb') h+=al('i','Carbonato: tomar COM refei\u00e7\u00e3o (requer acidez g\u00e1strica). Evitar com IBP sem ajuste. Pode causar constipa\u00e7\u00e3o.');
+    else h+=al('i','Citrato: absor\u00e7\u00e3o independente do pH \u2014 prefer\u00edvel com IBP, gastrectomizados e idosos. Melhor toler\u00e2ncia GI.');
+    h+=al('w','Associar calcitriol 0,25\u20130,5 mcg/dia se hipoparatireoidismo ou d\u00e9ficit de vitamina D.');
   }
-  h+=al('w','Sempre dosar e corrigir Mg²⁺ — hipomagnesemia inibe PTH e causa hipocalcemia refratária ao Ca.');
-  h+=al('d','⚠️ Digitálicos (digoxina): EVITAR Ca IV — risco de fibrilação ventricular. Se necessário: infusão lentíssima com ECG contínuo.');
+  h+=al('w','Sempre dosar e corrigir Mg\u00b2+ \u2014 hipomagnesemia inibe PTH e causa hipocalcemia refrat\u00e1ria ao Ca.');
+  h+=al('d','\u26a0\ufe0f Digit\u00e1licos (digoxina): EVITAR Ca IV \u2014 risco de fibrila\u00e7\u00e3o ventricular. Se necess\u00e1rio: infus\u00e3o lent\u00edssima com ECG cont\u00ednuo.');
   h+='</div>';
   show('r-ca',h);
 }
