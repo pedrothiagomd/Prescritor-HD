@@ -262,7 +262,7 @@ var MEDS=[
   {id:'cinacalcet',   nome:'Cinacalcete',               doses:['30 mg','60 mg','90 mg','180 mg'],                                      freqs:['1x/dia','2x/dia']},
   {id:'vitd',         nome:'Vitamina D (colecalciferol)',doses:['400 UI','800 UI','1.000 UI','2.000 UI','50.000 UI'],                   freqs:['1x/dia','2x/dia','1x/semana','quinzenal']},
   {id:'paricalcitol', nome:'Paricalcitol',              doses:[],                                                                       freqs:['3x/sem (intradialítico)','2x/sem','1x/sem']},
-  {id:'calcitriol',   nome:'Calcitriol (Rocaltrol®)',   doses:['0,25 mcg','0,5 mcg','1,0 mcg','2,0 mcg'],                            freqs:['1x/dia VO','2x/dia VO','3x/sem EV (intradialítico)','2x/sem EV']}
+  {id:'calcitriol',   nome:'Calcitriol (Rocaltrol®)',   doses:['0,25 mcg VO','0,5 mcg VO','1,0 mcg VO','0,5 mcg EV','1,0 mcg EV','2,0 mcg EV'],                            freqs:['1x/dia VO','2x/dia VO','3x/sem EV (intradialítico)','2x/sem EV']}
 ];
 
 function g(id){return document.getElementById(id);}
@@ -451,8 +451,10 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   else{r.vitd={cor:'green',dose:'800–1.000 UI/dia',freq:'1x/dia VO (manutenção)',detail:'Vit D '+vitD+' ng/mL: nível adequado. Manutenção 800–1.000 UI/dia se necessário. Monitorar anualmente. (KDIGO 2017)'};}
 
   // CALCITRIOL (1,25-OH Vit D — Rocaltrol®) — mesma linha que paricalcitol
-  // Disponível no Brasil: cápsulas VO 0,25 e 0,5 mcg + ampola EV
-  // Menos potente que paricalcitol para HPT grave; mais acessível (SUS/custo)
+  // Brasil: cápsulas VO 0,25 mcg e 0,5 mcg + ampola EV
+  // Doses EV (intradialítico) maiores que VO — absorção direta, sem perda GI
+  // EV: 0,5–2,0 mcg/sessão · VO: 0,25–1,0 mcg/dia
+  // Maior risco de hipercalcemia que paricalcitol — monitorar Ca mensalmente
   if(pth===null||ca===null){
     r.calcitriol={cor:'slate',dose:'—',freq:'—',detail:'PTH e Ca necessários para recomendação.'};
   }
@@ -462,19 +464,19 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   }
   else if(ca>=9.5){
     r.calcitriol={cor:'red',dose:'Contraindicado',freq:'—',
-      detail:'Ca '+ca.toFixed(1)+' mg/dL: hipercalcemia — calcitriol CONTRAINDICADO. Piora hipercalcemia. (KDIGO 2017)'};
+      detail:'Ca '+ca.toFixed(1)+' mg/dL: hipercalcemia — calcitriol CONTRAINDICADO. Piora hipercalcemia. Preferir cinacalcete. (KDIGO 2017)'};
   }
   else if(pth>=600){
-    r.calcitriol={cor:'amber',dose:'0,5–1,0 mcg',freq:'3x/sem EV ou 0,5 mcg/dia VO',
-      detail:'PTH '+(pthStr||pth)+': HPT grave — calcitriol menos potente que paricalcitol para este nível. Alternativa se paricalcitol indisponível. Monitorar Ca semanalmente — risco de hipercalcemia. (KDIGO 2017)'};
+    r.calcitriol={cor:'amber',dose:'EV: 1,0–2,0 mcg/sessão · VO: 0,5–1,0 mcg/dia',freq:'EV 3x/sem intradialítico · VO 1x/dia',
+      detail:'PTH '+(pthStr||pth)+': HPT grave — calcitriol alternativa ao paricalcitol se indisponível. EV: iniciar 1,0 mcg/sessão e titular. VO: iniciar 0,5 mcg/dia. Monitorar Ca semanalmente — maior risco de hipercalcemia que paricalcitol nesta faixa. (KDIGO 2017)'};
   }
   else if(pth>=300){
-    r.calcitriol={cor:'amber',dose:'0,25–0,5 mcg',freq:'3x/sem EV ou 0,25–0,5 mcg/dia VO',
-      detail:'PTH '+(pthStr||pth)+': HPT moderado-grave — calcitriol alternativa ao paricalcitol (mesma 1ª linha). EV intradialítico ou VO. Monitorar Ca mensalmente. Meta: redução PTH ≥ 30% em 8–12 sem. (KDIGO 2017)'};
+    r.calcitriol={cor:'amber',dose:'EV: 0,5–1,0 mcg/sessão · VO: 0,25–0,5 mcg/dia',freq:'EV 3x/sem intradialítico · VO 1x/dia',
+      detail:'PTH '+(pthStr||pth)+': HPT moderado — calcitriol 1ª linha junto com paricalcitol. EV: 0,5 mcg/sessão 3x/sem. VO: 0,25 mcg/dia, titular para 0,5 mcg/dia. Monitorar Ca mensalmente. Meta: redução PTH ≥ 30% em 8–12 sem. (KDIGO 2017)'};
   }
   else{
-    r.calcitriol={cor:'slate',dose:'0,25 mcg',freq:'1x/dia VO ou 3x/sem EV',
-      detail:'PTH '+(pthStr||pth)+': HPT leve (150–300). Calcitriol pode ser considerado; monitorar para não suprimir PTH abaixo de 150. (KDIGO 2017)'};
+    r.calcitriol={cor:'slate',dose:'EV: 0,5 mcg/sessão · VO: 0,25 mcg/dia',freq:'EV 3x/sem intradialítico · VO 1x/dia',
+      detail:'PTH '+(pthStr||pth)+': HPT leve (150–300). Iniciar com dose mínima. Monitorar PTH mensalmente para não suprimir abaixo de 150. (KDIGO 2017)'};
   }
 
   return r;
