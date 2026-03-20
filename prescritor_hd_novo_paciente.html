@@ -261,7 +261,7 @@ var MEDS=[
   {id:'calcio',       nome:'Carbonato de cálcio',       doses:['500 mg','1g','1,5g','2g','2,5g','3g'],                                  freqs:['1x/dia','2x/dia','3x/dia','4x/dia']},
   {id:'cinacalcet',   nome:'Cinacalcete',               doses:['30 mg','60 mg','90 mg','180 mg'],                                      freqs:['1x/dia','2x/dia']},
   {id:'vitd',         nome:'Vitamina D (colecalciferol)',doses:['400 UI','800 UI','1.000 UI','2.000 UI','50.000 UI'],                   freqs:['1x/dia','2x/dia','1x/semana','quinzenal']},
-  {id:'paricalcitol', nome:'Paricalcitol',              doses:[],                                                                       freqs:['3x/sem (intradialítico)','2x/sem','1x/sem','1x/dia (VO)']}
+  {id:'paricalcitol', nome:'Paricalcitol',              doses:[],                                                                       freqs:['3x/sem (intradialítico)','2x/sem','1x/sem']}
 ];
 
 function g(id){return document.getElementById(id);}
@@ -270,7 +270,7 @@ function sv(id){return g(id)?g(id).value.trim():'';}
 
 function initMedState(){
   medState={};
-  MEDS.forEach(function(m){medState[m.id]={ativo:false,dose:m.doses[0]||'',freq:m.freqs[0],via:'IV',doseManual:''};});
+  MEDS.forEach(function(m){medState[m.id]={ativo:false,dose:m.doses[0]||'',freq:m.freqs[0],doseManual:''};});
 }
 initMedState();
 
@@ -429,7 +429,7 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   }
   else if(!ps){
     r.paricalcitol={cor:'slate',dose:'Informe o peso seco',freq:'—',
-      detail:'Peso seco necessário para dose EV. VO alternativo: PTH ÷ 80 mcg/dia.'};
+      detail:'Informe o peso seco para calcular a dose EV (0,04–0,1 mcg/kg × peso).'};
   }
   else if(pth<600){
     var lo=(ps*0.04).toFixed(1),hi=(ps*0.1).toFixed(1);
@@ -451,10 +451,10 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
 
   // PARICALCITOL
   if(pth===null){r.paricalcitol={cor:'slate',dose:'—',freq:'—',detail:'PTH não informado.'};}
-  else if(!ps){r.paricalcitol={cor:'slate',dose:'Informe o peso seco',freq:'—',detail:'Peso seco necessário para dose EV. VO alternativo: PTH ÷ 80 mcg/dia.'};}
+  else if(!ps){r.paricalcitol={cor:'slate',dose:'Informe o peso seco',freq:'—',detail:'Informe o peso seco para calcular a dose EV (0,04–0,1 mcg/kg × peso).'};}
   else if(pth<150){r.paricalcitol={cor:'green',dose:'—',freq:'—',detail:'PTH '+(pthStr||pth)+': abaixo de 150 — NÃO indicado. Risco de doença adinâmica óssea. (KDIGO 2017)'};}
   else if(pth<600){var lo=(ps*0.04).toFixed(1),hi=(ps*0.1).toFixed(1);r.paricalcitol={cor:'amber',dose:'EV: '+lo+'–'+hi+' mcg/sessão',freq:'3x/sem',detail:'PTH '+(pthStr||pth)+': HPT moderado. Dose conservadora: '+lo+' mcg/sessão. Monitorar Ca e PTH mensalmente. (KDIGO 2017)'};}
-  else{var lo2=(ps*0.06).toFixed(1),hi2=(ps*0.1).toFixed(1),voD=(pth/80).toFixed(1);r.paricalcitol={cor:'red',dose:'EV: '+lo2+'–'+hi2+' mcg/sessão',freq:'3x/sem',detail:'PTH '+(pthStr||pth)+': HPT grave. Dose 0,06–0,1 mcg/kg × '+ps+' kg. VO alternativo: PTH ÷ 80 = '+voD+' mcg/dia. Meta: redução ≥ 30% em 8 sem. (KDIGO 2017)'};}
+  else{var lo2=(ps*0.06).toFixed(1),hi2=(ps*0.1).toFixed(1),voD=(pth/80).toFixed(1);r.paricalcitol={cor:'red',dose:'EV: '+lo2+'–'+hi2+' mcg/sessão',freq:'3x/sem',detail:'PTH '+(pthStr||pth)+': HPT grave. Dose 0,06–0,1 mcg/kg × '+ps+' kg. Meta: redução ≥ 30% em 8 sem. (KDIGO 2017)'};}
 
   return r;
 }
@@ -493,13 +493,7 @@ function buildMedGrid(){
     var doseField=isPari
       ?'<input type="text" id="dose-'+m.id+'" placeholder="'+(rec?rec.dose:'—')+'" value="'+medState[m.id].doseManual+'" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit" oninput="medState[\''+m.id+'\'].doseManual=this.value;medState[\''+m.id+'\'].dose=this.value">'
       :'<select id="dose-'+m.id+'" onchange="medState[\''+m.id+'\'].dose=this.value" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit">'+m.doses.map(function(d){return '<option>'+d+'</option>';}).join('')+'</select>';
-    var pVia=medState['paricalcitol'].via;
-    var pariExtra=isPari?(
-      '<select id="via-paricalcitol" class="med-full" onchange="medState[\'paricalcitol\'].via=this.value;buildMedGrid()" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit;margin-top:2px">'
-      +'<option value="IV"'+(pVia==='IV'?' selected':'')+'>EV — intradialítico</option>'
-      +'<option value="VO"'+(pVia==='VO'?' selected':'')+'>VO — oral</option>'
-      +'</select>'
-    ):'';
+    var pariExtra='';
     var hideIfEmpty=['epo','noripurum','vitd'];
     var recEmpty=rec&&rec.cor==='slate'&&rec.dose==='—'&&hideIfEmpty.indexOf(m.id)!==-1;
     var recBox=(rec&&!recEmpty)?'<div class="med-calc-box '+cor+' med-full"><div style="font-weight:600;font-size:11px;margin-bottom:2px">Dose sugerida (KDIGO): '+rec.dose+(rec.freq&&rec.freq!=='—'?' · '+rec.freq:'')+'</div><div style="font-size:11px;opacity:.85">'+rec.detail+'</div></div>':'';
@@ -571,11 +565,11 @@ function calcHeparina(){
 function getMedStr(m){
   var s=medState[m.id],ps=fv('pesoSeco');
   if(m.id==='paricalcitol'){
-    var via=s.via==='VO'?'VO':'EV';
+    
     var labs=getLabs(),pthStr=labs.pth?String(labs.pth):'—';
     var rec=getRecs(labs.hb,labs.p,labs.ca,labs.k,labs.pth,pthStr,ps,labs.ferritina,labs.satFe,labs.vitD)['paricalcitol'];
     var doseStr=s.doseManual||(rec?rec.dose:'a definir');
-    return 'Paricalcitol '+via+': '+doseStr+' — '+s.freq;
+    return 'Paricalcitol EV: '+doseStr+' — '+s.freq;
   }
   return m.nome+': '+s.dose+' — '+s.freq;
 }
