@@ -255,7 +255,7 @@ var FREQ_NOTES={
 };
 
 var MEDS=[
-  {id:'sevelamer',    nome:'Sevelamer',                doses:['400 mg','800 mg','1.200 mg','1.600 mg','2.400 mg','3.200 mg','4.800 mg'],freqs:['1x/dia','2x/dia','3x/dia','4x/dia']},
+  {id:'sevelamer',    nome:'Sevelamer',                doses:['800 mg'],freqs:['1x/dia','2x/dia','3x/dia','4x/dia']},
   {id:'epo',          nome:'EPO (eritropoietina)',      doses:['2.000 UI','4.000 UI','6.000 UI','8.000 UI','10.000 UI','12.000 UI'],   freqs:['1x/sem','2x/sem','3x/sem','a cada 2 sem']},
   {id:'noripurum',    nome:'Noripurum EV',              doses:['100 mg','200 mg'],                                                      freqs:['1x/sem','2x/sem','3x/sem (intradialítico)','dose única','quinzenal','mensal']},
   {id:'calcio',       nome:'Carbonato de cálcio',       doses:['500 mg','1g','1,5g','2g','2,5g','3g'],                                  freqs:['1x/dia','2x/dia','3x/dia','4x/dia']},
@@ -270,7 +270,7 @@ function sv(id){return g(id)?g(id).value.trim():'';}
 
 function initMedState(){
   medState={};
-  MEDS.forEach(function(m){medState[m.id]={ativo:false,dose:m.doses[0]||'',freq:m.freqs[0],doseManual:''};});
+  MEDS.forEach(function(m){medState[m.id]={ativo:false,dose:m.doses[0]||'',freq:m.freqs[0],doseManual:'',cp:1};});
 }
 initMedState();
 
@@ -482,6 +482,11 @@ function renderLabPreview(){
   }).join('')+'</div>';
 }
 
+
+function updateSevTotal(){
+  var el=document.getElementById('sev-total');
+  if(el) el.textContent='= '+(medState['sevelamer'].cp*800)+' mg/tomada';
+}
 function buildMedGrid(){
   var labs=getLabs(),ps=fv('pesoSeco');
   var pthStr=labs.pth?String(labs.pth):'—';
@@ -494,10 +499,11 @@ function buildMedGrid(){
       ?'<input type="text" id="dose-'+m.id+'" placeholder="'+(rec?rec.dose:'—')+'" value="'+medState[m.id].doseManual+'" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit" oninput="medState[\''+m.id+'\'].doseManual=this.value;medState[\''+m.id+'\'].dose=this.value">'
       :'<select id="dose-'+m.id+'" onchange="medState[\''+m.id+'\'].dose=this.value" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit">'+m.doses.map(function(d){return '<option>'+d+'</option>';}).join('')+'</select>';
     var pariExtra='';
+    var sevExtra=m.id==='sevelamer'?('<div class="mfu" style="display:flex;align-items:center;gap:6px;margin-top:3px"><label style="font-size:11px;color:#888;white-space:nowrap">Comprimidos por tomada:</label><input type="number" id="cp-sevelamer" min="1" max="10" value="'+medState['sevelamer'].cp+'" style="width:56px;font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit" oninput="medState[\'sevelamer\'].cp=parseInt(this.value)||1;updateSevTotal()"><span id="sev-total" style="font-size:11px;font-weight:600;color:#185FA5">= '+(medState['sevelamer'].cp*800)+' mg/tomada</span></div>'):'';
     var hideIfEmpty=['epo','noripurum','vitd'];
     var recEmpty=rec&&rec.cor==='slate'&&rec.dose==='—'&&hideIfEmpty.indexOf(m.id)!==-1;
     var recBox=(rec&&!recEmpty)?'<div class="med-calc-box '+cor+' med-full"><div style="font-weight:600;font-size:11px;margin-bottom:2px">Dose sugerida (KDIGO): '+rec.dose+(rec.freq&&rec.freq!=='—'?' · '+rec.freq:'')+'</div><div style="font-size:11px;opacity:.85">'+rec.detail+'</div></div>':'';
-    return '<div class="med-item" id="meditem-'+m.id+'"><div class="med-header"><input type="checkbox" class="med-check" id="chk-'+m.id+'" onchange="toggleMed(\''+m.id+'\')" '+(medState[m.id].ativo?'checked':'')+'><label class="med-name" for="chk-'+m.id+'">'+m.nome+'</label></div>'+recBox+'<div class="med-fields" id="fields-'+m.id+'" style="display:'+(medState[m.id].ativo?'grid':'none')+'">'+doseField+'<select id="freq-'+m.id+'" onchange="medState[\''+m.id+'\'].freq=this.value" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit">'+m.freqs.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'+pariExtra+'</div></div>';
+    return '<div class="med-item" id="meditem-'+m.id+'"><div class="med-header"><input type="checkbox" class="med-check" id="chk-'+m.id+'" onchange="toggleMed(\''+m.id+'\')" '+(medState[m.id].ativo?'checked':'')+'><label class="med-name" for="chk-'+m.id+'">'+m.nome+'</label></div>'+recBox+'<div class="med-fields" id="fields-'+m.id+'" style="display:'+(medState[m.id].ativo?'grid':'none')+'">'+doseField+'<select id="freq-'+m.id+'" onchange="medState[\''+m.id+'\'].freq=this.value" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit">'+m.freqs.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'+sevExtra+pariExtra+'</div></div>';
   }).join('');
 }
 
@@ -564,6 +570,10 @@ function calcHeparina(){
 
 function getMedStr(m){
   var s=medState[m.id],ps=fv('pesoSeco');
+  if(m.id==='sevelamer'){
+    var cp=s.cp||1;
+    return 'Sevelamer: 800 mg × '+cp+' comprimido'+(cp>1?'s':'')+'/tomada = '+(cp*800)+' mg/tomada — '+s.freq;
+  }
   if(m.id==='paricalcitol'){
     
     var labs=getLabs(),pthStr=labs.pth?String(labs.pth):'—';
