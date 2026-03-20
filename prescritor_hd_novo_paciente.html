@@ -261,7 +261,8 @@ var MEDS=[
   {id:'calcio',       nome:'Carbonato de cálcio',       doses:['500 mg','1g','1,5g','2g','2,5g','3g'],                                  freqs:['1x/dia','2x/dia','3x/dia','4x/dia']},
   {id:'cinacalcet',   nome:'Cinacalcete',               doses:['30 mg','60 mg','90 mg','180 mg'],                                      freqs:['1x/dia','2x/dia']},
   {id:'vitd',         nome:'Vitamina D (colecalciferol)',doses:['400 UI','800 UI','1.000 UI','2.000 UI','50.000 UI'],                   freqs:['1x/dia','2x/dia','1x/semana','quinzenal']},
-  {id:'paricalcitol', nome:'Paricalcitol',              doses:[],                                                                       freqs:['3x/sem (intradialítico)','2x/sem','1x/sem']}
+  {id:'paricalcitol', nome:'Paricalcitol',              doses:[],                                                                       freqs:['3x/sem (intradialítico)','2x/sem','1x/sem']},
+  {id:'calcitriol',   nome:'Calcitriol (Rocaltrol®)',   doses:['0,25 mcg','0,5 mcg','1,0 mcg','2,0 mcg'],                            freqs:['1x/dia VO','2x/dia VO','3x/sem EV (intradialítico)','2x/sem EV']}
 ];
 
 function g(id){return document.getElementById(id);}
@@ -449,12 +450,32 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   else if(vitD<30){r.vitd={cor:'amber',dose:'2.000 UI/dia ou 50.000 UI/quinzenal',freq:'VO diário ou quinzenal',detail:'Vit D '+vitD+' ng/mL: insuficiência. Colecalciferol 2.000 UI/dia ou 50.000 UI quinzenal × 4 semanas. Reavaliar em 2 meses. (KDIGO 2017)'};}
   else{r.vitd={cor:'green',dose:'800–1.000 UI/dia',freq:'1x/dia VO (manutenção)',detail:'Vit D '+vitD+' ng/mL: nível adequado. Manutenção 800–1.000 UI/dia se necessário. Monitorar anualmente. (KDIGO 2017)'};}
 
-  // PARICALCITOL
-  if(pth===null){r.paricalcitol={cor:'slate',dose:'—',freq:'—',detail:'PTH não informado.'};}
-  else if(!ps){r.paricalcitol={cor:'slate',dose:'Informe o peso seco',freq:'—',detail:'Informe o peso seco para calcular a dose EV (0,04–0,1 mcg/kg × peso).'};}
-  else if(pth<150){r.paricalcitol={cor:'green',dose:'—',freq:'—',detail:'PTH '+(pthStr||pth)+': abaixo de 150 — NÃO indicado. Risco de doença adinâmica óssea. (KDIGO 2017)'};}
-  else if(pth<600){var lo=(ps*0.04).toFixed(1),hi=(ps*0.1).toFixed(1);r.paricalcitol={cor:'amber',dose:'EV: '+lo+'–'+hi+' mcg/sessão',freq:'3x/sem',detail:'PTH '+(pthStr||pth)+': HPT moderado. Dose conservadora: '+lo+' mcg/sessão. Monitorar Ca e PTH mensalmente. (KDIGO 2017)'};}
-  else{var lo2=(ps*0.06).toFixed(1),hi2=(ps*0.1).toFixed(1),voD=(pth/80).toFixed(1);r.paricalcitol={cor:'red',dose:'EV: '+lo2+'–'+hi2+' mcg/sessão',freq:'3x/sem',detail:'PTH '+(pthStr||pth)+': HPT grave. Dose 0,06–0,1 mcg/kg × '+ps+' kg. Meta: redução ≥ 30% em 8 sem. (KDIGO 2017)'};}
+  // CALCITRIOL (1,25-OH Vit D — Rocaltrol®) — mesma linha que paricalcitol
+  // Disponível no Brasil: cápsulas VO 0,25 e 0,5 mcg + ampola EV
+  // Menos potente que paricalcitol para HPT grave; mais acessível (SUS/custo)
+  if(pth===null||ca===null){
+    r.calcitriol={cor:'slate',dose:'—',freq:'—',detail:'PTH e Ca necessários para recomendação.'};
+  }
+  else if(pth<150){
+    r.calcitriol={cor:'green',dose:'—',freq:'—',
+      detail:'PTH '+(pthStr||'—')+': abaixo de 150 — NÃO indicado. Risco de doença adinâmica óssea. (KDIGO 2017)'};
+  }
+  else if(ca>=9.5){
+    r.calcitriol={cor:'red',dose:'Contraindicado',freq:'—',
+      detail:'Ca '+ca.toFixed(1)+' mg/dL: hipercalcemia — calcitriol CONTRAINDICADO. Piora hipercalcemia. (KDIGO 2017)'};
+  }
+  else if(pth>=600){
+    r.calcitriol={cor:'amber',dose:'0,5–1,0 mcg',freq:'3x/sem EV ou 0,5 mcg/dia VO',
+      detail:'PTH '+(pthStr||pth)+': HPT grave — calcitriol menos potente que paricalcitol para este nível. Alternativa se paricalcitol indisponível. Monitorar Ca semanalmente — risco de hipercalcemia. (KDIGO 2017)'};
+  }
+  else if(pth>=300){
+    r.calcitriol={cor:'amber',dose:'0,25–0,5 mcg',freq:'3x/sem EV ou 0,25–0,5 mcg/dia VO',
+      detail:'PTH '+(pthStr||pth)+': HPT moderado-grave — calcitriol alternativa ao paricalcitol (mesma 1ª linha). EV intradialítico ou VO. Monitorar Ca mensalmente. Meta: redução PTH ≥ 30% em 8–12 sem. (KDIGO 2017)'};
+  }
+  else{
+    r.calcitriol={cor:'slate',dose:'0,25 mcg',freq:'1x/dia VO ou 3x/sem EV',
+      detail:'PTH '+(pthStr||pth)+': HPT leve (150–300). Calcitriol pode ser considerado; monitorar para não suprimir PTH abaixo de 150. (KDIGO 2017)'};
+  }
 
   return r;
 }
@@ -492,7 +513,7 @@ function buildMedGrid(){
   var pthStr=labs.pth?String(labs.pth):'—';
   var recs=getRecs(labs.hb,labs.p,labs.ca,labs.k,labs.pth,pthStr,ps,labs.ferritina,labs.satFe,labs.vitD);
   g('medGrid').innerHTML=MEDS.map(function(m){
-    var isPari=m.id==='paricalcitol';
+    var isPari=m.id==='paricalcitol'||m.id==='calcitriol';
     var rec=recs[m.id];
     var cor=rec?rec.cor:'slate';
     var doseField=isPari
@@ -570,6 +591,10 @@ function calcHeparina(){
 
 function getMedStr(m){
   var s=medState[m.id],ps=fv('pesoSeco');
+  if(m.id==='calcitriol'){
+    var via=s.freq.indexOf('EV')!==-1?'EV intradialítico':'VO';
+    return 'Calcitriol (Rocaltrol®): '+s.dose+' — '+s.freq+' ('+via+')';
+  }
   if(m.id==='sevelamer'){
     var cp=s.cp||1;
     return 'Sevelamer: 800 mg × '+cp+' comprimido'+(cp>1?'s':'')+'/tomada = '+(cp*800)+' mg/tomada — '+s.freq;
