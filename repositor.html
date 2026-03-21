@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -6,8 +7,8 @@
 <title>Reposicao Eletrolitica &mdash; Calculadora Clinica</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{padding:1.5rem;font-family:'DM Sans',system-ui,sans-serif;background:#f4f3f0;color:#1a1a18;font-size:14px}
-.wrap{max-width:980px;margin:0 auto}
+body{padding:1.25rem 1rem;font-family:'DM Sans',system-ui,sans-serif;background:#f4f3f0;color:#1a1a18;font-size:14px;margin:0}
+.wrap{max-width:860px;margin:0 auto}
 h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 .subtitle{font-size:12px;color:#888;margin-bottom:1.25rem;letter-spacing:.02em}
 .banner{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;color:#1e40af}
@@ -91,10 +92,14 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 /* Result area separator */
 .res-area{margin-top:10px}
 .res-block{margin-bottom:0}
-@media(max-width:600px){
-  .row3{grid-template-columns:1fr 1fr}
+@media(max-width:640px){
+  .row3,.row2{grid-template-columns:1fr}
   .nums-grid{grid-template-columns:1fr 1fr}
-  .tab-btn{padding:8px 13px;font-size:12px}
+  .tab-btn{padding:8px 11px;font-size:12px}
+  .card,.hab-card{padding:.75rem .85rem}
+  body{padding:.75rem .75rem}
+  .ref-table{font-size:11px}
+  .ref-table th,.ref-table td{padding:4px 5px}
 }
 </style>
 </head>
@@ -103,12 +108,13 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 
 <div style="margin-bottom:1rem">
   <h1>Reposicao Eletrolitica</h1>
-  <div class="subtitle">FAAMA &middot; K+ &middot; Na+ &middot; Mg2+ &middot; Ca2+ &middot; Baseado em ESE/ESICM, StatPearls 2024, NHS 2024, Merck Manual 2025</div>
+  <div class="subtitle">FAAMA &middot; K+ &middot; Na+ &middot; Mg2+ &middot; Ca2+</div>
 </div>
 
-<div class="banner">Selecione o eletrólito, preencha os dados e clique em <strong>Calcular</strong>. A prescrição é gerada automaticamente com base nas diretrizes vigentes.</div>
+<div class="banner">Selecione o eletrólito, preencha os dados e clique em <strong>Calcular</strong>.</div>
 
 <!-- TABS -->
+
 <div class="tab-row">
   <button class="tab-btn on-k" id="tab-k" onclick="showTab('k')">&#9889; Potassio K+</button>
   <button class="tab-btn" id="tab-na" onclick="showTab('na')">&#128167; Sodio Na+</button>
@@ -119,6 +125,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <!-- ================================================================
      POTASSIO
      ================================================================ -->
+
 <div id="p-k" class="panel on">
 
   <div class="card">
@@ -128,9 +135,8 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
       <tr><td>KCl 19,1%</td><td>2,5 mEq/mL</td><td>10 mL</td><td><strong>25 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
       <tr><td>KCl 10%</td><td>1,34 mEq/mL</td><td>10 mL</td><td><strong>13,4 mEq/amp</strong></td><td><span class="badge badge-cvc">CVC</span></td></tr>
       <tr><td>Bolsa SF + KCl pronto uso</td><td>20 mEq/100mL</td><td>100 mL</td><td><strong>20 mEq/bolsa</strong></td><td><span class="badge badge-pvp">PVP</span></td></tr>
-      <tr><td>KCl Xarope 6%</td><td>8 mEq/5mL</td><td>frasco</td><td><strong>8 mEq/dose</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
-      <tr><td>Slow-K comprimido</td><td>8 mEq/cp</td><td>&mdash;</td><td><strong>8 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
-      <tr><td>Kaleorid LP comprimido</td><td>20 mEq/cp</td><td>&mdash;</td><td><strong>20 mEq/cp</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Ionclor (xarope KCl 6%)</td><td>0,8 mEq/mL</td><td>frasco 150mL</td><td><strong>8 mEq/10mL</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
+      <tr><td>Slow-K comprimido</td><td>8 mEq/dragea</td><td>&mdash;</td><td><strong>8 mEq/dragea</strong></td><td><span class="badge badge-vo">VO</span></td></tr>
     </table>
   </div>
 
@@ -145,10 +151,11 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
       <div class="field"><label>Apresentacao / Via</label>
         <select id="kv">
           <option value="cvc25">EV CVC &mdash; KCl 19,1% (25 mEq/amp)</option>
-          <option value="pvp20">EV PVP &mdash; Bolsa 20 mEq/100mL</option>
-          <option value="vox">VO &mdash; Xarope 6% (8 mEq/5mL)</option>
-          <option value="vos">VO &mdash; Slow-K (8 mEq/cp)</option>
-          <option value="vok">VO &mdash; Kaleorid LP (20 mEq/cp)</option>
+          <option value="cvc10">EV CVC &mdash; KCl 10% (13,4 mEq/amp)</option>
+          <option value="pvp20">EV PVP &mdash; Bolsa pronta 20 mEq/100mL</option>
+          <option value="pvpdil">EV PVP &mdash; KCl 10% diluido em SF (max 40 mEq/L)</option>
+          <option value="vox">VO &mdash; Ionclor xarope 6% (8 mEq/10mL)</option>
+          <option value="vos">VO &mdash; Slow-K (8 mEq/dragea)</option>
         </select>
       </div>
       <div class="field"><label>Funcao renal</label>
@@ -168,6 +175,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <!-- ================================================================
      SODIO
      ================================================================ -->
+
 <div id="p-na" class="panel">
 
   <div class="hab-card">
@@ -192,20 +200,20 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
   <div class="card">
     <div class="card-title">Calculadora &mdash; Formula de Adrogue-Madias</div>
     <div class="row3">
-      <div class="field"><label>Peso (kg)</label><input type="number" id="nap" placeholder="70" step="0.1"></div>
-      <div class="field"><label>Na+ atual (mEq/L)</label><input type="number" id="naa" placeholder="118" step="0.1"></div>
-      <div class="field"><label>Na+ alvo (mEq/L)</label><input type="number" id="naalvo" placeholder="126" step="0.1"></div>
+      <div class="field"><label>Peso (kg)</label><input type="number" id="nap" oninput="calcNa()" placeholder="70" step="0.1"></div>
+      <div class="field"><label>Na+ atual (mEq/L)</label><input type="number" id="naa" oninput="calcNa()" placeholder="118" step="0.1"></div>
+      <div class="field"><label>Na+ alvo (mEq/L)</label><input type="number" id="naalvo" oninput="calcNa()" placeholder="126" step="0.1"></div>
     </div>
     <div class="row2">
       <div class="field"><label>Sexo / Idade (TBW)</label>
-        <select id="natbw">
+        <select id="natbw" onchange="calcNa()">
           <option value="0.6">Homem adulto (60%)</option>
           <option value="0.5">Mulher adulta / Homem idoso (50%)</option>
           <option value="0.45">Mulher idosa (45%)</option>
         </select>
       </div>
       <div class="field"><label>Solucao</label>
-        <select id="nasol">
+        <select id="nasol" onchange="calcNa()">
           <option value="494">HAB &mdash; SF 390mL + 11amp NaCl 10% (494 mEq/L)</option>
           <option value="513">NaCl 3% hipertonico (513 mEq/L)</option>
           <option value="154">SF 0,9% (154 mEq/L)</option>
@@ -216,54 +224,28 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
     </div>
     <div class="row2">
       <div class="field"><label>Limite de seguranca (ODS)</label>
-        <select id="nalim">
-          <option value="8">Padrao &mdash; max. 8 mEq/L/24h (painel americano)</option>
-          <option value="6">Alto risco (alcoolismo, cirrose, K+ baixo, Na&lt;105) &mdash; max. 6/24h</option>
-          <option value="10">Sintomatico grave (vigilancia) &mdash; max. 10/24h (ESE/ESICM)</option>
+        <select id="nalim" onchange="calcNa()">
+          <option value="8">Padrao &mdash; max. 8 mEq/L/24h</option>
+          <option value="6">Alto risco (alcoolismo, cirrose, K+ baixo, Na &lt; 105) &mdash; max. 6 mEq/L/24h</option>
+          <option value="10">Sintomatico grave (vigilancia) &mdash; max. 10 mEq/L/24h</option>
         </select>
       </div>
-      <div class="field"><label>Via de acesso</label>
-        <select id="navia"><option value="cvc">CVC</option><option value="pvp">PVP (SF 0,9% / RL apenas)</option></select>
-      </div>
-    </div>
 
-    <div class="sec-divider">Modo de calculo</div>
-    <div class="mode-row">
-      <button class="mode-btn sel" id="mb-24h" onclick="setNaModo('24h',this)">Em 24h</button>
-      <button class="mode-btn" id="mb-vel" onclick="setNaModo('vel',this)">Velocidade &rarr; Tempo</button>
-      <button class="mode-btn" id="mb-vol" onclick="setNaModo('vol',this)">Volume &rarr; Delta-Na</button>
-    </div>
+```
+</div>
 
-    <div id="nm-24h" class="mode-panel on">
-      <p style="font-size:12px;color:#888">Distribui a correcao uniformemente em 24h respeitando o limite de seguranca.</p>
-    </div>
-    <div id="nm-vel" class="mode-panel">
-      <p style="font-size:12px;color:#888;margin-bottom:8px">Defina a velocidade desejada &mdash; o sistema calcula por <strong>quanto tempo infundir</strong> sem ultrapassar o limite diario.</p>
-      <div class="row2">
-        <div class="field"><label>Velocidade (mL/h)</label><input type="number" id="namlh" placeholder="ex: 30" step="1" min="5"></div>
-        <div class="field"><label>Referencia rapida</label>
-          <select onchange="if(this.value){document.getElementById('namlh').value=this.value}">
-            <option value="">-- selecionar --</option>
-            <option value="20">HAB a 20 mL/h</option>
-            <option value="30">HAB a 30 mL/h</option>
-            <option value="40">HAB a 40 mL/h</option>
-            <option value="50">HAB a 50 mL/h</option>
-            <option value="100">SF 0,9% a 100 mL/h</option>
-            <option value="125">SF 0,9% a 125 mL/h</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div id="nm-vol" class="mode-panel">
-      <p style="font-size:12px;color:#888;margin-bottom:8px">Informe o volume disponivel (ex: 1 bolsa HAB = 500mL) e o tempo &mdash; veja quanto o Na+ vai subir.</p>
-      <div class="row2">
-        <div class="field"><label>Volume a infundir (mL)</label><input type="number" id="navol" placeholder="500" step="50"></div>
-        <div class="field"><label>Tempo de infusao (h)</label><input type="number" id="nath" placeholder="6" step="0.5"></div>
-      </div>
-    </div>
+<div class="sec-divider">Modo de calculo</div>
+<div class="mode-row">
+  <button class="mode-btn sel" id="mb-24h" onclick="setNaModo('24h',this)">Em 24h</button>
+  <button class="mode-btn" id="mb-vel" onclick="setNaModo('vel',this)">Tempo minimo</button>
+</div>
 
-    <button class="btn-calc" onclick="calcNa()">Calcular</button>
-    <div id="r-na" class="res-area"></div>
+<div id="nm-24h" class="mode-panel on"></div>
+<div id="nm-vel" class="mode-panel"></div>
+
+<div id="r-na" class="res-area"></div>
+```
+
   </div>
 
 </div>
@@ -271,6 +253,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <!-- ================================================================
      MAGNESIO
      ================================================================ -->
+
 <div id="p-mg" class="panel">
 
   <div class="card">
@@ -324,6 +307,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <!-- ================================================================
      CALCIO
      ================================================================ -->
+
 <div id="p-ca" class="panel">
 
   <div class="card">
@@ -373,6 +357,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <!-- ================================================================
      JAVASCRIPT — pure ASCII, no external dependencies
      ================================================================ -->
+
 <script>
 var naModo = '24h';
 
@@ -401,11 +386,11 @@ function showTab(t){
 /* --- Na+ mode tabs --- */
 function setNaModo(m, btn){
   naModo = m;
-  ['24h','vel','vol'].forEach(function(x){
+  ['24h','vel'].forEach(function(x){
     g('mb-'+x).className = 'mode-btn' + (x === m ? ' sel' : '');
     g('nm-'+x).className = 'mode-panel' + (x === m ? ' on' : '');
   });
-  g('r-na').innerHTML = '';
+  calcNa();
 }
 
 /* --- HTML helpers (same pattern as HD prescriber) --- */
@@ -464,7 +449,21 @@ function calcK(){
       'Concentracao maxima CVC: 200 mEq/L (ate 400 mEq/L em UTI com ECG continuo)<br>' +
       'Limite diario: &le; 200&ndash;300 mEq/24h'
     );
-    h += al('w', 'Re-dosar K+ a cada 4&ndash;6h durante reposicao ativa (NHS Grampian 2024). ECG continuo se K+ &lt; 2,5 mEq/L.');
+    h += al('w', 'Re-dosar K+ a cada 4&ndash;6h durante reposicao ativa. ECG continuo se K+ &lt; 2,5 mEq/L ou taxa &gt; 20 mEq/h.');
+  }
+  else if(via === 'cvc10'){
+    var n10 = Math.ceil(dose / 13.4);
+    var vd10 = Math.max(100, n10 * 50);
+    var t10  = Math.max(1, dose / 20);
+    h += rb('blue',
+      'Prescricao &mdash; EV CVC &mdash; KCl 10% (13,4 mEq/amp)',
+      fmt(n10,0) + ' amp &rarr; ' + fmt(dose/vd10*1000,0) + ' mEq/L &rarr; ' + fmt(vd10/t10,0) + ' mL/h por ' + fmt(t10,1) + 'h',
+      fmt(n10,0) + ' amp KCl 10% (13,4 mEq/amp) + SF 0,9% q.s.p. ' + vd10 + 'mL<br>' +
+      'Velocidade maxima: <strong>20 mEq/h</strong> via CVC<br>' +
+      'Concentracao maxima CVC: 200 mEq/L<br>' +
+      'Limite diario: &le; 200&ndash;400 mEq/24h'
+    );
+    h += al('w', 'Re-dosar K+ a cada 4&ndash;6h durante reposicao ativa. ECG continuo se K+ &lt; 2,5 mEq/L ou taxa &gt; 20 mEq/h.');
   }
   else if(via === 'pvp20'){
     var n2 = Math.ceil(dose / 20);
@@ -472,24 +471,46 @@ function calcK(){
       'Prescricao &mdash; EV PVP &mdash; Bolsa 20 mEq/100mL',
       n2 + ' bolsa(s) de 100mL &rarr; 50 mL/h por bolsa (2h/bolsa)',
       'Velocidade maxima: <strong>10 mEq/h</strong> via PVP<br>' +
-      'Limite conservador NHS 2024: 40 mEq/L &mdash; a bolsa 20 mEq/100mL e aceita clinicamente em veia calibrosa<br>' +
+      'Limite conservador: 40 mEq/L &mdash; a bolsa 20 mEq/100mL e aceita clinicamente em veia calibrosa<br>' +
       'Para dose &gt; 80 mEq: migrar para CVC<br>' +
       'Re-dosar K+ apos cada ciclo antes de repetir'
     );
   }
+  else if(via === 'pvpdil'){
+    /* KCl 10% diluido em SF para PVP: limite 40 mEq/L, max 10 mEq/h */
+    var nAmpPvp   = Math.ceil(dose / 13.4);
+    var meqReal   = nAmpPvp * 13.4;
+    /* volume minimo de SF para nao ultrapassar 40 mEq/L */
+    var volMinSF  = Math.ceil(meqReal / 40 * 1000 / 100) * 100;
+    volMinSF = Math.max(volMinSF, 100);
+    var concFinal = meqReal / volMinSF * 1000;
+    var tempo     = Math.max(1, meqReal / 10);
+    var taxaMlh   = volMinSF / tempo;
+    h += rb('green',
+      'Prescricao &mdash; EV PVP &mdash; KCl 10% diluido em SF',
+      fmt(nAmpPvp,0) + ' amp KCl 10% em ' + volMinSF + 'mL SF 0,9% &rarr; ' + fmt(concFinal,0) + ' mEq/L &rarr; ' + fmt(taxaMlh,0) + ' mL/h',
+      'Diluicao: ' + fmt(nAmpPvp,0) + ' amp (13,4 mEq/amp) + SF 0,9% q.s.p. ' + volMinSF + 'mL<br>' +
+      'Velocidade maxima PVP: <strong>10 mEq/h</strong> &rarr; ' + fmt(taxaMlh,0) + ' mL/h por ' + fmt(tempo,1) + 'h<br>' +
+      'Concentracao final: ' + fmt(concFinal,0) + ' mEq/L &mdash; limite maximo PVP: 40 mEq/L<br>' +
+      'Infundir em veia calibrosa (antecubital). Monitorar sinais de flebite.'
+    );
+    if(meqReal > 80){
+      h += al('w', 'Dose &gt; 80 mEq: tempo de infusao ' + fmt(tempo,1) + 'h via PVP. Considerar CVC para maior comodidade.');
+    }
+    h += al('w', 'PVP: concentracao maxima 40 mEq/L. Acima disso risco de flebite e dor intensa. Re-dosar K+ apos cada ciclo.');
+  }
   else {
-    var meqMap = {vox:8, vos:8, vok:20};
+    var meqMap = {vox:8, vos:8};
     var nomeMap = {
-      vox: 'KCl Xarope 6% &mdash; 8 mEq/5mL',
-      vos: 'Slow-K &mdash; 8 mEq/cp',
-      vok: 'Kaleorid LP &mdash; 20 mEq/cp'
+      vox: 'Ionclor xarope 6% &mdash; 8 mEq/10mL',
+      vos: 'Slow-K &mdash; 8 mEq/dragea'
     };
-    var unMap = {vox:'doses de 5mL', vos:'comprimido(s)', vok:'comprimido(s)'};
+    var unMap = {vox:'doses de 10mL', vos:'dragea(s)'};
     var n3 = Math.ceil(dose / meqMap[via]);
     h += rb('purple',
       'Prescricao &mdash; Via Oral &mdash; ' + nomeMap[via],
       n3 + ' ' + unMap[via] + ' = ' + (n3 * meqMap[via]) + ' mEq',
-      'Dividir em 2&ndash;4x/dia &mdash; tomar com refeicao para reduzir irritacao GI<br>' +
+      'Dividir em 2&ndash;5x/dia &mdash; tomar com refeicao para reduzir irritacao GI<br>' +
       'Dose diaria maxima VO: 40&ndash;100 mEq/dia<br>' +
       'Re-dosar K+ &ge; 2h apos dose oral antes de repetir'
     );
@@ -503,7 +524,7 @@ function calcK(){
     h += al('d', 'Hipocalemia grave (&lt;2,5 mEq/L): ECG continuo obrigatorio. Considerar UTI.');
   }
   if(kA < 3.0){
-    h += al('w', 'DKA / cetoacidose: velocidades de 40&ndash;60 mEq/h podem ser necessarias com monitorizacao horaria &mdash; avaliar individualmente.');
+    h += al('w', 'DKA / cetoacidose: velocidades de 40&ndash;60 mEq/h podem ser necessarias com monitorizacao horaria do K+ &mdash; avaliar individualmente.');
   }
   h += al('w', 'Sempre corrigir Mg2+ concomitante &mdash; hipomagnesemia perpetua perda renal de K+ e torna a correcao refrataria.');
 
@@ -520,12 +541,10 @@ function calcNa(){
   var tbw   = peso ? peso * parseFloat(sv('natbw')) : null;
   var naInf = parseFloat(sv('nasol'));
   var lim   = parseFloat(sv('nalim'));
-  var via   = sv('navia');
   var isHAB = (naInf === 494);
 
-  if(!peso || !naA || !naAlvo){ show('r-na', al('w','Preencha peso, Na+ atual e alvo.')); return; }
-  if(naAlvo <= naA){ show('r-na', al('w','Na+ alvo deve ser maior que o atual.')); return; }
-  if(naInf >= 400 && via === 'pvp'){ show('r-na', al('d','Solucao hipertonica nao pode ser administrada em PVP.')); return; }
+  if(!peso || !naA || !naAlvo){ g('r-na').innerHTML=''; return; }
+  if(naAlvo <= naA){ g('r-na').innerHTML=''; return; }
 
   var d1L       = (naInf - naA) / (tbw + 1);  /* delta Na per litre */
   var dAlvo     = naAlvo - naA;
@@ -567,81 +586,53 @@ function calcNa(){
     }
   }
   else if(naModo === 'vel'){
-    var mlh = fv('namlh');
-    if(!mlh){ show('r-na', al('w','Informe a velocidade em mL/h.')); return; }
+    /*
+     * Limite de taxa de elevacao: 0,25 a 0,5 mEq/L/h
+     * Tempo minimo = delta_Na_total / taxa_maxima (0,5 mEq/L/h)
+     * Tempo conservador = delta_Na_total / taxa_minima (0,25 mEq/L/h)
+     * Taxa em mL/h = taxa_mEqLh / d1L * 1000
+     * Volume fixo = corrFase / d1L * 1000
+     */
+    var corrFase    = Math.min(dAlvo, lim);
+    var volFase     = (corrFase / d1L) * 1000;
 
-    var cH    = d1L * (mlh / 1000);
-    var c24h  = cH * 24;
-    var tMax  = lim / cH;
-    var tAlvo = dAlvo / cH;
-    var tRec  = Math.min(tMax, tAlvo);
-    var cRec  = cH * tRec;
-    var naF   = naA + cRec;
-    var seguro= (c24h <= lim);
-    var volU  = mlh * tRec;
+    var taxaRapida  = 0.5;   /* mEq/L/h -- maximo */
+    var taxaLenta   = 0.25;  /* mEq/L/h -- conservador */
 
-    h += '<div class="nums-grid">' +
-      nb(fmt(cH,2) + ' mEq/L/h', 'velocidade correcao') +
-      nb(fmt(tRec,1) + 'h', seguro ? 'ate o alvo' : 'PARAR aqui') +
-      nb(fmt(naF,1) + ' mEq/L', 'Na+ final esperado') +
-      '</div>';
-
-    var prepHAB2 = isHAB
-      ? '<br>Bolsas HAB: ' + Math.ceil(volU/500) + ' x 500mL | Duracao/bolsa: ' + fmt(500/mlh,1) + 'h'
-      : '';
-    h += rb(seguro ? 'green' : 'amber',
-      'Prescricao &mdash; Velocidade Definida',
-      mlh + ' mL/h por ' + fmt(tRec,1) + 'h &mdash; ' + (seguro ? 'dentro do limite' : 'PARAR ao atingir limite diario'),
-      'Correcao obtida: +' + fmt(cRec,1) + ' mEq/L<br>' +
-      'Volume total utilizado: ' + fmt(volU,0) + ' mL<br>' +
-      'Projecao 24h continuo: ' + fmt(c24h,1) + ' mEq/L (limite: ' + lim + ')' + prepHAB2
-    );
-
-    if(!seguro){
-      h += al('d', 'A ' + mlh + ' mL/h por 24h continuo o Na+ subiria ' + fmt(c24h,1) + ' mEq/L &mdash; acima do limite de ' + lim + '/24h. PARAR apos ' + fmt(tMax,1) + 'h (Na+ ~' + fmt(naA+lim,1) + ' mEq/L). Depois manter com solucao menos concentrada ou suspender e reavaliar.');
-    } else {
-      h += al('s', 'A ' + mlh + ' mL/h a correcao em 24h seria ' + fmt(c24h,1) + ' mEq/L &mdash; dentro do limite de ' + lim + '/24h.');
-    }
-    h += al('i', 'Monitorar Na+ a cada 2&ndash;4h. Suspender ao atingir ' + naAlvo + ' mEq/L (previsao: ' + fmt(tAlvo,1) + 'h a esta velocidade).');
-  }
-  else {
-    var vol = fv('navol');
-    var th  = fv('nath');
-    if(!vol || !th){ show('r-na', al('w','Informe volume e tempo.')); return; }
-
-    var taxaV = vol / th;
-    var cT    = d1L * (vol / 1000);
-    var cHv   = cT / th;
-    var c24v  = cHv * 24;
-    var naFv  = naA + cT;
-    var segV  = (cT <= lim);
+    var tMin        = corrFase / taxaRapida;    /* horas -- tempo minimo */
+    var tConserv    = corrFase / taxaLenta;     /* horas -- tempo conservador */
+    var mlhRapido   = (taxaRapida / d1L) * 1000; /* mL/h a 0,5 mEq/L/h */
+    var mlhLento    = (taxaLenta  / d1L) * 1000; /* mL/h a 0,25 mEq/L/h */
+    var naFfase     = naA + corrFase;
 
     h += '<div class="nums-grid">' +
-      nb('+' + fmt(cT,2) + ' mEq/L', 'elevacao do Na+') +
-      nb(fmt(taxaV,0) + ' mL/h', 'taxa necessaria') +
-      nb(fmt(naFv,1) + ' mEq/L', 'Na+ final esperado') +
+      nb(fmt(tMin,1) + 'h', 'tempo minimo (0,5 mEq/L/h)') +
+      nb(fmt(tConserv,1) + 'h', 'conservador (0,25 mEq/L/h)') +
+      nb(fmt(naFfase,1) + ' mEq/L', 'Na+ ao final') +
       '</div>';
 
-    var habNote = (isHAB && vol == 500)
-      ? '<br>1 bolsa HAB (500mL) a ' + fmt(taxaV,0) + ' mL/h &rarr; Na+ +' + fmt(cT,2) + ' mEq/L em ' + th + 'h'
+    var prepHABv = isHAB
+      ? '<br>Bolsas HAB: ' + Math.ceil(volFase/500) + ' x 500mL | Duracao/bolsa a ' + fmt(mlhRapido,0) + ' mL/h: ' + fmt(500/mlhRapido,1) + 'h'
       : '';
-    h += rb(segV ? 'green' : 'amber',
-      'Resultado &mdash; Por Volume',
-      vol + 'mL em ' + th + 'h &rarr; ' + (segV ? 'dentro do limite' : 'ACIMA DO LIMITE'),
-      'Velocidade de correcao: ' + fmt(cHv,2) + ' mEq/L/h<br>' +
-      'Projecao 24h continuo: ' + fmt(c24v,1) + ' mEq/L (limite: ' + lim + ')<br>' +
-      'Volume max. seguro/24h desta solucao: ' + fmt(volMaxDia,0) + ' mL' + habNote
+
+    h += rb('blue',
+      'Tempo minimo &mdash; Adrogue-Madias',
+      'Rapido: ' + fmt(mlhRapido,0) + ' mL/h por ' + fmt(tMin,1) + 'h &nbsp;|&nbsp; Conservador: ' + fmt(mlhLento,0) + ' mL/h por ' + fmt(tConserv,1) + 'h',
+      'Correcao: +' + fmt(corrFase,1) + ' mEq/L (' + naA + ' &rarr; ' + fmt(naFfase,1) + ' mEq/L)<br>' +
+      'Volume total: ' + fmt(volFase,0) + ' mL<br>' +
+      '0,5 mEq/L/h: ' + fmt(mlhRapido,0) + ' mL/h &rarr; tempo minimo ' + fmt(tMin,1) + 'h<br>' +
+      '0,25 mEq/L/h: ' + fmt(mlhLento,0) + ' mL/h &rarr; tempo conservador ' + fmt(tConserv,1) + 'h' + prepHABv
     );
 
-    if(!segV){
-      h += al('d', vol + 'mL desta solucao eleva Na+ em ' + fmt(cT,2) + ' mEq/L &mdash; acima do limite de ' + lim + '/24h. Volume maximo seguro: ' + fmt(volMaxDia,0) + ' mL/24h.');
-    } else {
-      h += al('s', vol + 'mL em ' + th + 'h esta dentro do limite de seguranca (' + fmt(cT,2) + ' mEq/L &lt; ' + lim + '/24h).');
+    if(dAlvo > lim){
+      var corrRest = dAlvo - corrFase;
+      var volRest  = (corrRest / d1L) * 1000;
+      h += al('w', 'Deficit residual: +' + fmt(corrRest,1) + ' mEq/L (' + fmt(naFfase,1) + ' &rarr; ' + naAlvo + ' mEq/L). Aguardar 24h do inicio desta fase antes de iniciar fase 2 (volume: ' + fmt(volRest,0) + ' mL).');
     }
+    h += al('i', 'Tempo minimo = delta-Na / 0,5 mEq/L/h. O total de ' + lim + ' mEq/L/24h nao muda &mdash; apenas a velocidade de infusao. Monitorar Na+ a cada 2&ndash;4h.');
   }
 
-  if(naInf >= 400){ h += al('d', 'Solucao hipertonica &ge; 400 mEq/L: EXCLUSIVAMENTE via CVC. Nunca em PVP &mdash; risco de necrose tecidual.'); }
-  h += al('d', 'LIMITE ABSOLUTO: &le;8&ndash;10 mEq/L em qualquer periodo de 24h. Meta-analise Kidney Medicine 2024 (n=26.710): correcao rapida &rarr; ODS com OR 3,16x. Alto risco: &le;6 mEq/L/24h (ESE/ESICM/ERA-EDTA Guideline).');
+  h += al('d', 'LIMITE ABSOLUTO: &le;8&ndash;10 mEq/L em qualquer periodo de 24h. Limite: &le;10 mEq/L/24h (primeiras 24h), &le;8 mEq/L em qualquer periodo posterior. Alto risco ODS: &le;6 mEq/L/24h.');
   h += al('w', 'Supercorrecao: SG 5% 3&ndash;5 mL/kg/h +/- desmopressina 2&ndash;4 mcg IV. Monitorar Na+ a cada 2&ndash;4h nas primeiras 24h.');
 
   show('r-na', h);
@@ -680,7 +671,7 @@ function calcMg(){
       n + ' amp (' + (n*5) + 'g = ' + fmt(n*40.5,0) + ' mEq)',
       n + ' amp de 10mL + SF 0,9% q.s.p. 100&ndash;250mL<br>' +
       'Velocidade maxima: <strong>1g/30min (2g/h)</strong> &rarr; ' + fmt(dose/tempo,1) + 'g/h por ' + fmt(tempo,1) + 'h<br>' +
-      'Aguardar 8&ndash;12h para nova dosagem (redistribuicao tecidual) &mdash; NHS RUH; VUMC Guidelines'
+      'Aguardar 8&ndash;12h para nova dosagem (redistribuicao tecidual)'
     );
     h += al('d', 'MgSO4 50% NUNCA infundir puro &mdash; sempre diluir. Risco de necrose e parada cardiaca.');
   }
@@ -703,10 +694,10 @@ function calcMg(){
     );
   }
 
-  if(renal === 'g'){ h += al('d', 'IR grave (TFG &lt;30): reduzir dose em 25&ndash;50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxicacao (Medscape; NHS RUH PATH_021).'); }
+  if(renal === 'g'){ h += al('d', 'IR grave (TFG &lt;30): reduzir dose em 25&ndash;50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxicacao por hipermagnesemia.'); }
   if(grav === 'g'){ h += al('d', 'Grave/sintomatico (torsades, convulsao, tetania): 4&ndash;8g EV em 4h. Antidoto de intoxicacao: Gluconato Ca 1g IV.'); }
   h += al('i', 'Hipocalemia refrataria: corrigir Mg antes/junto &mdash; hipomagnesemia perpetua perda renal de K+.');
-  h += al('w', 'Hipocalcemia concomitante: repor Ca2+ <strong>antes</strong> de iniciar MgSO4 IV &mdash; o ion sulfato complexa Ca2+ ionizado e pode agravar agudamente a hipocalcemia (StatPearls; Medscape).');
+  h += al('w', 'Hipocalcemia concomitante: repor Ca2+ <strong>antes</strong> de iniciar MgSO4 IV &mdash; o ion sulfato complexa Ca2+ ionizado e pode agravar agudamente a hipocalcemia.');
 
   show('r-mg', h);
 }
@@ -749,9 +740,9 @@ function calcCa(){
         nAmp + ' amp (' + nAmp + 'g = ' + fmt(nAmp*fMeq,1) + ' mEq)',
         nAmp + ' amp em 50&ndash;100mL SF 0,9% &rarr; infundir em <strong>10&ndash;20min</strong><br>' +
         'Efeito dura 1&ndash;2h &mdash; pode repetir 1&ndash;2x conforme resposta<br>' +
-        'ECG continuo obrigatorio durante infusao (Medscape; GGC Medicines Guideline)'
+        'ECG continuo obrigatorio durante infusao'
       );
-      h += al('d', 'Sintomatico grave (tetania, laringoespasmo, convulsao, arritmia): 1&ndash;2g IV em 10&ndash;20min. Pode repetir 1&ndash;2x.');
+      h += al('d', 'Sintomatico grave (tetania, laringoespasmo, convulsao, arritmia): 1&ndash;2g IV em 10&ndash;20min. Pode repetir a cada 10&ndash;60 min ate resolucao dos sintomas.');
     }
     else {
       h += rb(cls,
@@ -763,7 +754,7 @@ function calcCa(){
       );
     }
     if(via === 'clor'){
-      h += al('d', 'Cloreto Ca: CVC OBRIGATORIO &mdash; caustico, necrose em PVP. 3x mais potente que gluconato. Preferido em PCR e emergencia grave.');
+      h += al('d', 'Cloreto Ca: CVC OBRIGATORIO &mdash; caustico, necrose em PVP. 3x mais potente que gluconato em Ca elementar. Preferido em PCR e emergencia grave.');
     } else {
       h += al('i', 'Gluconato Ca: unico sal de calcio seguro para PVP. Preferivel para reposicao eletiva e moderada.');
     }
@@ -790,5 +781,6 @@ function calcCa(){
   show('r-ca', h);
 }
 </script>
+
 </body>
 </html>
