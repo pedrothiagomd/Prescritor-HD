@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -109,6 +110,10 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
   </div>
   <div id="peso-info" class="peso-note" style="display:none"></div>
   <div id="cg-result" style="display:none;margin-top:10px"></div>
+  <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+    <input type="checkbox" id="modalidade_renal" onchange="calcAtb()" style="width:16px;height:16px;cursor:pointer;accent-color:#6b21a8">
+    <label for="modalidade_renal" style="font-size:13px;color:#555;cursor:pointer;margin:0">Paciente em HD intermitente</label>
+  </div>
 </div>
 
 <div class="card">
@@ -151,516 +156,528 @@ function fv(id){ var v = parseFloat(g(id).value); return isNaN(v) ? null : v; }
 function fmt(v,d){ return v.toFixed(d !== undefined ? d : 1); }
 
 function calcIBW(altcm, sexo){
-  var alt_in = (altcm - 152.4) / 2.54;
-  return sexo === 'm' ? 50 + 2.3 * alt_in : 45.5 + 2.3 * alt_in;
+var alt_in = (altcm - 152.4) / 2.54;
+return sexo === ‘m’ ? 50 + 2.3 * alt_in : 45.5 + 2.3 * alt_in;
 }
 
 /* CKD-EPI 2021 (sem raca) \u2014 retorna eGFR mL/min/1,73m2 */
 function calcCKDEPI(idade, scr, sexo){
-  var kappa = sexo === 'f' ? 0.7  : 0.9;
-  var alpha = sexo === 'f' ? -0.241 : -0.302;
-  var sex_f  = sexo === 'f' ? 1.012 : 1.0;
-  var ratio  = scr / kappa;
-  var term   = ratio < 1
-    ? Math.pow(ratio, alpha)
-    : Math.pow(ratio, -1.200);
-  return 142 * term * Math.pow(0.9938, idade) * sex_f;
+var kappa = sexo === ‘f’ ? 0.7  : 0.9;
+var alpha = sexo === ‘f’ ? -0.241 : -0.302;
+var sex_f  = sexo === ‘f’ ? 1.012 : 1.0;
+var ratio  = scr / kappa;
+var term   = ratio < 1
+? Math.pow(ratio, alpha)
+: Math.pow(ratio, -1.200);
+return 142 * term * Math.pow(0.9938, idade) * sex_f;
 }
 
 /* Cockcroft-Gault */
 function calcCG(idade, scr, pesoUso, sexo){
-  var cr = scr < 0.6 ? 0.6 : scr;
-  var v  = ((140 - idade) * pesoUso) / (72 * cr);
-  if(sexo === 'f') v *= 0.85;
-  return v;
+var cr = scr < 0.6 ? 0.6 : scr;
+var v  = ((140 - idade) * pesoUso) / (72 * cr);
+if(sexo === ‘f’) v *= 0.85;
+return v;
 }
 
 function bandaLabel(c){
-  if(c >= 60) return ['Normal / Leve (\u226560)', 'band-normal'];
-  if(c >= 30) return ['Moderada (30\u201359)', 'band-mild'];
-  if(c >= 10) return ['Grave (10\u201329)', 'band-mod'];
-  return ['Muito grave / Anefrico (<10)', 'band-sev'];
+if(c >= 60) return [‘Normal / Leve (\u226560)’, ‘band-normal’];
+if(c >= 30) return [‘Moderada (30\u201359)’, ‘band-mild’];
+if(c >= 10) return [‘Grave (10\u201329)’, ‘band-mod’];
+return [‘Muito grave (<10)’, ‘band-sev’];
 }
 
 function calc(){
-  var idade = fv('idade'), scr = fv('scr'), pesoR = fv('peso'), altcm = fv('altura');
-  var sexo  = g('sexo').value;
-  var piBox = g('peso-info'), cgBox = g('cg-result');
+var idade = fv(‘idade’), scr = fv(‘scr’), pesoR = fv(‘peso’), altcm = fv(‘altura’);
+var sexo  = g(‘sexo’).value;
+var piBox = g(‘peso-info’), cgBox = g(‘cg-result’);
 
-  if(!idade || !scr){ piBox.style.display='none'; cgBox.style.display='none'; crcl=null; calcAtb(); return; }
+if(!idade || !scr){ piBox.style.display=‘none’; cgBox.style.display=‘none’; crcl=null; calcAtb(); return; }
 
-  var ibw  = altcm ? calcIBW(altcm, sexo) : null;
-  var adj  = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
-  var metodo, crclVal, pesoUso, pesoLabel, pesoInfo='';
+var ibw  = altcm ? calcIBW(altcm, sexo) : null;
+var adj  = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
+var metodo, crclVal, pesoUso, pesoLabel, pesoInfo=’’;
 
-  if(pesoR){
-    /* Com peso: Cockcroft-Gault */
-    var tipo = g('tipopeso').value;
-    if(tipo === 'real'){ pesoUso = pesoR; pesoLabel = 'Peso real'; }
-    else if(tipo === 'ibw' && ibw){ pesoUso = ibw; pesoLabel = 'IBW'; }
-    else if(tipo === 'adj' && adj){ pesoUso = adj; pesoLabel = 'PCA'; }
-    else {
-      if(altcm && ibw && pesoR > ibw * 1.2 && adj){ pesoUso = adj; pesoLabel = 'PCA (auto \u2014 peso > 120% IBW)'; }
-      else { pesoUso = pesoR; pesoLabel = 'Peso real (auto)'; }
-    }
-    crclVal = calcCG(idade, scr, pesoUso, sexo);
-    metodo  = 'Cockcroft-Gault';
-    pesoInfo = 'Peso utilizado: <strong>' + fmt(pesoUso,1) + ' kg</strong> (' + pesoLabel + ')';
-    if(ibw) pesoInfo += ' &nbsp;|&nbsp; IBW: ' + fmt(ibw,1) + ' kg';
-    if(adj) pesoInfo += ' &nbsp;|&nbsp; PCA: ' + fmt(adj,1) + ' kg';
-  } else {
-    /* Sem peso: CKD-EPI 2021 */
-    crclVal = calcCKDEPI(idade, scr, sexo);
-    metodo  = 'CKD-EPI 2021';
-    pesoInfo = 'Sem peso informado \u2014 usando CKD-EPI 2021 (eGFR mL/min/1,73m\u00b2). Informe o peso para usar Cockcroft-Gault e calcular doses por kg.';
-  }
+if(pesoR){
+/* Com peso: Cockcroft-Gault */
+var tipo = g(‘tipopeso’).value;
+if(tipo === ‘real’){ pesoUso = pesoR; pesoLabel = ‘Peso real’; }
+else if(tipo === ‘ibw’ && ibw){ pesoUso = ibw; pesoLabel = ‘IBW’; }
+else if(tipo === ‘adj’ && adj){ pesoUso = adj; pesoLabel = ‘PCA’; }
+else {
+if(altcm && ibw && pesoR > ibw * 1.2 && adj){ pesoUso = adj; pesoLabel = ‘PCA (auto \u2014 peso > 120% IBW)’; }
+else { pesoUso = pesoR; pesoLabel = ‘Peso real (auto)’; }
+}
+crclVal = calcCG(idade, scr, pesoUso, sexo);
+metodo  = ‘Cockcroft-Gault’;
+pesoInfo = ‘Peso utilizado: <strong>’ + fmt(pesoUso,1) + ’ kg</strong> (’ + pesoLabel + ‘)’;
+if(ibw) pesoInfo += ’  |  IBW: ’ + fmt(ibw,1) + ’ kg’;
+if(adj) pesoInfo += ’  |  PCA: ’ + fmt(adj,1) + ’ kg’;
+} else {
+/* Sem peso: CKD-EPI 2021 */
+crclVal = calcCKDEPI(idade, scr, sexo);
+metodo  = ‘CKD-EPI 2021’;
+pesoInfo = ‘Sem peso informado \u2014 usando CKD-EPI 2021 (eGFR mL/min/1,73m\u00b2). Informe o peso para usar Cockcroft-Gault e calcular doses por kg.’;
+}
 
-  crcl = crclVal;
-  crclMetodo = metodo;
+crcl = crclVal;
+crclMetodo = metodo;
 
-  if(pesoInfo){ piBox.innerHTML = pesoInfo; piBox.style.display='block'; }
-  else { piBox.style.display='none'; }
+if(pesoInfo){ piBox.innerHTML = pesoInfo; piBox.style.display=‘block’; }
+else { piBox.style.display=‘none’; }
 
-  var bl = bandaLabel(crcl);
-  cgBox.innerHTML = '<div class="cg-box">' +
-    '<div><div class="cg-num">' + fmt(crcl,1) + ' <span style="font-size:13px;font-weight:500">mL/min' + (metodo==='CKD-EPI 2021'?'/1,73m\u00b2':'') + '</span></div>' +
-    '<div class="cg-lbl">' + metodo + '</div></div>' +
-    '<span class="cg-band ' + bl[1] + '">' + bl[0] + '</span>' +
-    (crcl < 10 ? '<span class="cg-band band-hd">Dosar como Anefrico / HD</span>' : '') +
-    '</div>';
-  cgBox.style.display = 'block';
+var bl = bandaLabel(crcl);
+cgBox.innerHTML = ‘<div class="cg-box">’ +
+‘<div><div class="cg-num">’ + fmt(crcl,1) + ’ <span style="font-size:13px;font-weight:500">mL/min’ + (metodo===‘CKD-EPI 2021’?’/1,73m\u00b2’:’’) + ‘</span></div>’ +
+‘<div class="cg-lbl">’ + metodo + ‘</div></div>’ +
+‘<span class="cg-band ' + bl[1] + '">’ + bl[0] + ‘</span>’ +
+((crcl < 10 || (document.getElementById(‘modalidade_renal’) && document.getElementById(‘modalidade_renal’).checked)) ? ‘<span class="cg-band band-hd">Em HD / Anefrico — ver dose pos-sessao</span>’ : ‘’) +
+‘</div>’;
+cgBox.style.display = ‘block’;
 
-  calcAtb();
+calcAtb();
 }
 
 function selAtb(id){
-  atbSel = id;
-  document.querySelectorAll('.atb-btn').forEach(function(b){
-    b.className = 'atb-btn' + (b.getAttribute('onclick') === "selAtb('" + id + "')" ? ' sel' : '');
-  });
-  renderOpcoes(id);
-  calcAtb();
+atbSel = id;
+document.querySelectorAll(’.atb-btn’).forEach(function(b){
+b.className = ‘atb-btn’ + (b.getAttribute(‘onclick’) === “selAtb(’” + id + “’)” ? ’ sel’ : ‘’);
+});
+renderOpcoes(id);
+calcAtb();
 }
 
 function renderOpcoes(id){
-  var box = g('atb-opcoes');
-  var h = '';
+var box = g(‘atb-opcoes’);
+var h = ‘’;
 
-  if(id === 'meropenem'){
-    h = '<div class="field"><label>Indicacao / Gravidade</label>' +
-      '<select id="opt-mero" onchange="calcAtb()">' +
-      '<option value="std">Padrao &mdash; 1g q8h</option>' +
-      '<option value="sev">Grave / SNC / septico &mdash; 2g q8h</option>' +
-      '</select></div>';
-  } else if(id === 'imipenem'){
-    h = '<div class="field"><label>Indicacao / Gravidade</label>' +
-      '<select id="opt-imi" onchange="calcAtb()">' +
-      '<option value="std">Padrao &mdash; 500mg q6h</option>' +
-      '<option value="sev">Grave / SNC &mdash; 1g q6h</option>' +
-      '</select></div>';
-  } else if(id === 'cefepime'){
-    h = '<div class="field"><label>Indicacao / Gravidade</label>' +
-      '<select id="opt-cefe" onchange="calcAtb()">' +
-      '<option value="std">Padrao &mdash; 2g q8h</option>' +
-      '<option value="cns">SNC / ECMO / neutropenia / MIC &ge;4 &mdash; 2g q8h (high target)</option>' +
-      '</select></div>';
-  } else if(id === 'amicacina'){
-    h = '<div class="field"><label>Dose base (mg/kg peso ajustado)</label>' +
-      '<select id="opt-ami" onchange="calcAtb()">' +
-      '<option value="15">15 mg/kg q24h</option>' +
-      '<option value="20">20 mg/kg q24h (infeccoes graves / Gram-neg MDR)</option>' +
-      '</select></div>';
-  } else if(id === 'gentamicina'){
-    h = '<div class="field"><label>Dose base (mg/kg)</label>' +
-      '<select id="opt-genta" onchange="calcAtb()">' +
-      '<option value="5">5 mg/kg q24h</option>' +
-      '<option value="7">7 mg/kg q24h (Gram-neg grave)</option>' +
-      '</select></div>';
-  }
-
-  if(h){ box.innerHTML = '<div class="sec-div">Opcao de Dose</div><div class="row2">' + h + '</div>'; box.style.display='block'; }
-  else { box.innerHTML=''; box.style.display='none'; }
+if(id === ‘meropenem’){
+h = ‘<div class="field"><label>Indicacao / Gravidade</label>’ +
+‘<select id="opt-mero" onchange="calcAtb()">’ +
+‘<option value="std">Padrao — 1g q8h</option>’ +
+‘<option value="sev">Grave / SNC / septico — 2g q8h</option>’ +
+‘</select></div>’;
+} else if(id === ‘imipenem’){
+h = ‘<div class="field"><label>Indicacao / Gravidade</label>’ +
+‘<select id="opt-imi" onchange="calcAtb()">’ +
+‘<option value="std">Padrao — 500mg q6h</option>’ +
+‘<option value="sev">Grave / SNC — 1g q6h</option>’ +
+‘</select></div>’;
+} else if(id === ‘cefepime’){
+h = ‘<div class="field"><label>Indicacao / Gravidade</label>’ +
+‘<select id="opt-cefe" onchange="calcAtb()">’ +
+‘<option value="std">Padrao — 2g q8h</option>’ +
+‘<option value="cns">SNC / ECMO / neutropenia / MIC ≥4 — 2g q8h (high target)</option>’ +
+‘</select></div>’;
+} else if(id === ‘amicacina’){
+h = ‘<div class="field"><label>Dose base (mg/kg peso ajustado)</label>’ +
+‘<select id="opt-ami" onchange="calcAtb()">’ +
+‘<option value="15">15 mg/kg q24h</option>’ +
+‘<option value="20">20 mg/kg q24h (infeccoes graves / Gram-neg MDR)</option>’ +
+‘</select></div>’;
+} else if(id === ‘gentamicina’){
+h = ‘<div class="field"><label>Dose base (mg/kg)</label>’ +
+‘<select id="opt-genta" onchange="calcAtb()">’ +
+‘<option value="5">5 mg/kg q24h</option>’ +
+‘<option value="7">7 mg/kg q24h (Gram-neg grave)</option>’ +
+‘</select></div>’;
 }
 
-function nb(val, lbl){ return '<div class="num-box"><div class="num-val">' + val + '</div><div class="num-lbl">' + lbl + '</div></div>'; }
+if(h){ box.innerHTML = ‘<div class="sec-div">Opcao de Dose</div><div class="row2">’ + h + ‘</div>’; box.style.display=‘block’; }
+else { box.innerHTML=’’; box.style.display=‘none’; }
+}
+
+function nb(val, lbl){ return ‘<div class="num-box"><div class="num-val">’ + val + ‘</div><div class="num-lbl">’ + lbl + ‘</div></div>’; }
 function rb(cor, titulo, val, det){
-  return '<div class="rec-box ' + cor + '"><div class="rec-label">' + titulo + '</div>' +
-    '<div class="rec-val">' + val + '</div>' +
-    (det ? '<div class="rec-detail">' + det + '</div>' : '') + '</div>';
+return ‘<div class="rec-box ' + cor + '"><div class="rec-label">’ + titulo + ‘</div>’ +
+‘<div class="rec-val">’ + val + ‘</div>’ +
+(det ? ‘<div class="rec-detail">’ + det + ‘</div>’ : ‘’) + ‘</div>’;
 }
-function al(tipo, txt){ return '<div class="alert-box alert-' + tipo + '">' + txt + '</div>'; }
+function al(tipo, txt){ return ‘<div class="alert-box alert-' + tipo + '">’ + txt + ‘</div>’; }
 
 /* ================================================================
-   CALC ATB
-   ================================================================ */
+CALC ATB
+================================================================ */
 function calcAtb(){
-  var box = g('r-atb');
-  if(!atbSel){ box.innerHTML=''; return; }
-  if(!crcl){ box.innerHTML = al('i','Preencha os dados do paciente para calcular.'); return; }
+var box = g(‘r-atb’);
+if(!atbSel){ box.innerHTML=’’; return; }
+var emHD = (g(‘modalidade_renal’) && g(‘modalidade_renal’).checked);
+if(!crcl && !emHD){ box.innerHTML = al(‘i’,‘Preencha os dados do paciente para calcular.’); return; }
+var c = crcl || 5; /* CrCl real para definir a dose ajustada */
+/* emHD e flag independente: adiciona bloco pos-HD independente do CrCl */
+var h = ‘’;
 
-  var c = crcl;
-  var h = '';
+/* Helper: dose text */
+function dose(d, freq, inf, hd, obs){
+var det = ‘’;
+if(inf) det += ’Infusao: ’ + inf + ‘<br>’;
+if(hd)  det += ’<strong>Pos-HD:</strong> ’ + hd + ‘<br>’;
+if(obs) det += obs;
+return rb(‘green’, ‘Dose ajustada’, d + ’ ’ + freq, det);
+}
+function doseHD(d, freq, hd, obs){
+var det = ’<strong>Pos-HD:</strong> ’ + hd + (obs ? ‘<br>’ + obs : ‘’);
+return rb(‘purple’, ‘Em HD intermitente’, d + ’ ’ + freq, det);
+}
+function aviso(txt){ return al(‘w’, txt); }
+function info(txt){ return al(‘i’, txt); }
+function danger(txt){ return al(‘d’, txt); }
 
-  /* Helper: dose text */
-  function dose(d, freq, inf, hd, obs){
-    var det = '';
-    if(inf) det += 'Infusao: ' + inf + '<br>';
-    if(hd)  det += '<strong>Pos-HD:</strong> ' + hd + '<br>';
-    if(obs) det += obs;
-    return rb('green', 'Dose ajustada', d + ' ' + freq, det);
-  }
-  function doseHD(d, freq, hd, obs){
-    var det = '<strong>Pos-HD:</strong> ' + hd + (obs ? '<br>' + obs : '');
-    return rb('purple', 'Em HD intermitente', d + ' ' + freq, det);
-  }
-  function aviso(txt){ return al('w', txt); }
-  function info(txt){ return al('i', txt); }
-  function danger(txt){ return al('d', txt); }
+/* – PIPERACILINA-TAZOBACTAM – */
+if(atbSel === ‘pip-taz’){
+/* Doses conforme Guia HAB 2023 (tabela p.23): CrCl >50: 4,5g q6h; 10-50: 2,25g q6h; <10: 2,25g q8h */
+if(c > 50){
+h += rb(‘green’,‘Dose ajustada (HAB)’,‘4,5g q6h’,‘Infusao EV em 4h<br>CrCl >50 mL/min — sem ajuste’);
+} else if(c >= 10){
+h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl 10–50’,‘2,25g q6h’,‘Infusao EV em 4h<br>Reducao de dose para 50% — manter frequencia q6h’);
+} else {
+h += rb(‘red’,‘Dose ajustada (HAB) — CrCl <10’,‘2,25g q8h’,‘CrCl <10 mL/min: reducao de dose e aumento de intervalo’);
+}
+if(emHD){
+h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘2,25g q8h + dose adicional 75mg apos HD’,‘Dose padrao mantida; administrar dose suplementar de 75mg apos cada sessao de HD’);
+}
+h += info(‘Guia HAB 2023. Infusao estendida de 4h otimiza o tempo acima da MIC (%T>MIC). A dose de 4,5g pode ser mantida na primeira dose independente da funcao renal antes de ajustar.’);
+h += aviso(‘Evitar associacao com vancomicina — risco aumentado de nefrotoxicidade.’);
+}
 
-  /* -- PIPERACILINA-TAZOBACTAM -- */
-  if(atbSel === 'pip-taz'){
-    /* Doses conforme Guia HAB 2023 (tabela p.23): CrCl >50: 4,5g q6h; 10-50: 2,25g q6h; <10: 2,25g q8h */
-    if(c > 50){
-      h += rb('green','Dose ajustada (HAB)','4,5g q6h','Infusao EV em 4h<br>CrCl &gt;50 mL/min &mdash; sem ajuste');
-    } else if(c >= 10){
-      h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;50','2,25g q6h','Infusao EV em 4h<br>Reducao de dose para 50% &mdash; manter frequencia q6h');
-    } else {
-      h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10','2,25g q8h','CrCl &lt;10 mL/min: reducao de dose e aumento de intervalo');
-    }
-    if(c < 10){
-      h += rb('purple','Em HD intermitente (HAB)','2,25g q8h + dose adicional 75mg apos HD','Dose padrao mantida; administrar dose suplementar de 75mg apos cada sessao de HD');
-    }
-    h += info('Guia HAB 2023. Infusao estendida de 4h otimiza %T&gt;MIC. Dose de ataque 4,5g independente da funcao renal.');
-    h += aviso('Evitar associacao com vancomicina &mdash; risco aumentado de nefrotoxicidade.');
-  }
+/* – MEROPENEM – */
+else if(atbSel === ‘meropenem’){
+var grave = g(‘opt-mero’) && g(‘opt-mero’).value === ‘sev’;
+h += ‘<div class="nums-grid">’ + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + nb(grave?‘2g’:‘1g’,‘dose base’) + nb(grave?‘q8h’:‘q8h’,‘intervalo base’) + ‘</div>’;
+if(grave){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (grave)’,‘2g q8h’,‘Infusao EV em 3h’);
+else if(c > 30)  h += rb(‘amber’,‘Dose ajustada (grave)’,‘2g q12h’,‘Infusao EV em 3h — CrCl 31–50’);
+else if(c > 10)  h += rb(‘amber’,‘Dose ajustada (grave)’,‘1g q12h’,‘Infusao EV em 3h — CrCl 10–30’);
+else             h += rb(‘red’,‘Dose ajustada (grave)’,‘1g q24h’,‘Infusao EV em 3h — CrCl <10’);
+if(emHD)       h += rb(‘purple’,‘Em HD intermitente’,‘2g apos cada sessao de HD’,‘Administrar apos o termino de cada sessao de HD’);
+} else {
+if(c > 50)       h += rb(‘green’,‘Dose ajustada’,‘1g q8h’,‘Infusao EV em 3h’);
+else if(c > 30)  h += rb(‘amber’,‘Dose ajustada’,‘1g q12h’,‘Infusao EV em 3h — CrCl 31–50’);
+else if(c > 10)  h += rb(‘amber’,‘Dose ajustada’,‘500mg q12h’,‘Infusao EV em 3h — CrCl 10–30’);
+else             h += rb(‘red’,‘Dose ajustada’,‘500mg q24h’,‘Infusao EV em 3h — CrCl <10’);
+if(emHD)       h += rb(‘purple’,‘Em HD intermitente’,‘1g apos cada sessao de HD’,‘Administrar apos o termino de cada sessao de HD’);
+}
+h += info(‘Infusao estendida de 3h aumenta o %T>MIC e melhora desfechos em infeccoes por Gram-negativos com MIC intermediaria. Administrar bolus inicial de 30min, depois programar as manutencoes em 3h.’);
+}
 
-  /* -- MEROPENEM -- */
-  else if(atbSel === 'meropenem'){
-    var grave = g('opt-mero') && g('opt-mero').value === 'sev';
-    h += '<div class="nums-grid">' + nb(fmt(c,0)+' mL/min','CrCl') + nb(grave?'2g':'1g','dose base') + nb(grave?'q8h':'q8h','intervalo base') + '</div>';
-    if(grave){
-      if(c > 50)       h += rb('green','Dose ajustada (grave)','2g q8h','Infusao EV em 3h');
-      else if(c > 30)  h += rb('amber','Dose ajustada (grave)','2g q12h','Infusao EV em 3h &mdash; CrCl 31&ndash;50');
-      else if(c > 10)  h += rb('amber','Dose ajustada (grave)','1g q12h','Infusao EV em 3h &mdash; CrCl 10&ndash;30');
-      else             h += rb('red','Dose ajustada (grave)','1g q24h','Infusao EV em 3h &mdash; CrCl &lt;10');
-      if(c < 10)       h += rb('purple','Em HD intermitente','2g 3x/semana pos-HD','Administrar apos cada sessao de HD (tipicamente 3x/semana)');
-    } else {
-      if(c > 50)       h += rb('green','Dose ajustada','1g q8h','Infusao EV em 3h');
-      else if(c > 30)  h += rb('amber','Dose ajustada','1g q12h','Infusao EV em 3h &mdash; CrCl 31&ndash;50');
-      else if(c > 10)  h += rb('amber','Dose ajustada','500mg q12h','Infusao EV em 3h &mdash; CrCl 10&ndash;30');
-      else             h += rb('red','Dose ajustada','500mg q24h','Infusao EV em 3h &mdash; CrCl &lt;10');
-      if(c < 10)       h += rb('purple','Em HD intermitente','1g 3x/semana pos-HD','Administrar apos cada sessao de HD (tipicamente 3x/semana)');
-    }
-    h += info('Infusao estendida de 3h melhora atingimento de alvo PD (%T>MIC). Reprogramar infusao de manutencao apos bolus inicial de 30min.');
-  }
+/* – IMIPENEM – */
+else if(atbSel === ‘imipenem’){
+var grave = g(‘opt-imi’) && g(‘opt-imi’).value === ‘sev’;
+if(grave){
+if(c >= 30)      h += rb(‘green’,‘Dose ajustada (grave/SNC)’,‘1g q6h’,‘Infusao EV em 1h — CrCl ≥30’);
+else if(c >= 15) h += rb(‘amber’,‘Dose ajustada (grave/SNC)’,‘500mg q6h’,‘Infusao EV em 1h — CrCl 15–29<br>Dose reduzida por risco de neurotoxicidade’);
+else if(c >= 10) h += rb(‘red’,‘Dose ajustada (grave/SNC)’,‘250mg q6h’,‘CrCl 10–14’);
+else             h += rb(‘red’,‘Nao recomendado’,’—’,‘Imipenem NAO recomendado para CrCl <15 a menos que em HD<br>Risco elevado de neurotoxicidade e convulsoes’);
+if(emHD)       h += rb(‘purple’,‘Em HD intermitente’,‘500mg q12h’,‘Considerar apenas em HD; monitorar neurotoxicidade’);
+} else {
+if(c > 50)       h += rb(‘green’,‘Dose ajustada’,‘500mg q6h’,‘Infusao EV em 1h’);
+else if(c > 30)  h += rb(‘amber’,‘Dose ajustada’,‘500mg q8h’,‘CrCl 31–50’);
+else if(c >= 15) h += rb(‘amber’,‘Dose ajustada’,‘500mg q12h’,‘CrCl 15–30’);
+else if(c >= 10) h += rb(‘red’,‘Dose ajustada’,‘250mg q12h’,‘CrCl 10–14’);
+else             h += rb(‘red’,‘Nao recomendado’,’—’,‘Imipenem NAO recomendado para CrCl <15 a menos que em HD’);
+if(emHD)       h += rb(‘purple’,‘Em HD intermitente’,‘250mg q12h’,‘Dose reduzida; monitorar neurotoxicidade; considerar meropenem’);
+}
+h += aviso(‘Imipenem tem maior potencial epileptogeno que meropenem (inibicao de receptor GABA-A). Risco aumentado em CrCl <30, idosos, lesao do SNC previa e doses elevadas. Preferir meropenem para infeccoes do SNC ou em IR grave.’);
+}
 
-  /* -- IMIPENEM -- */
-  else if(atbSel === 'imipenem'){
-    var grave = g('opt-imi') && g('opt-imi').value === 'sev';
-    if(grave){
-      if(c >= 30)      h += rb('green','Dose ajustada (grave/SNC)','1g q6h','Infusao EV em 1h &mdash; CrCl &ge;30');
-      else if(c >= 15) h += rb('amber','Dose ajustada (grave/SNC)','500mg q6h','Infusao EV em 1h &mdash; CrCl 15&ndash;29<br>Dose reduzida por risco de neurotoxicidade');
-      else if(c >= 10) h += rb('red','Dose ajustada (grave/SNC)','250mg q6h','CrCl 10&ndash;14');
-      else             h += rb('red','Nao recomendado','&mdash;','Imipenem NAO recomendado para CrCl &lt;15 a menos que em HD<br>Risco elevado de neurotoxicidade e convulsoes');
-      if(c < 15)       h += rb('purple','Em HD intermitente','500mg q12h','Considerar apenas em HD; monitorar neurotoxicidade');
-    } else {
-      if(c > 50)       h += rb('green','Dose ajustada','500mg q6h','Infusao EV em 1h');
-      else if(c > 30)  h += rb('amber','Dose ajustada','500mg q8h','CrCl 31&ndash;50');
-      else if(c >= 15) h += rb('amber','Dose ajustada','500mg q12h','CrCl 15&ndash;30');
-      else if(c >= 10) h += rb('red','Dose ajustada','250mg q12h','CrCl 10&ndash;14');
-      else             h += rb('red','Nao recomendado','&mdash;','Imipenem NAO recomendado para CrCl &lt;15 a menos que em HD');
-      if(c < 15)       h += rb('purple','Em HD intermitente','250mg q12h','Dose reduzida; monitorar neurotoxicidade; considerar meropenem');
-    }
-    h += aviso('Imipenem tem maior potencial convulsivante que meropenem, especialmente em CrCl &lt;30. Preferir meropenem em SNC ou IR grave.');
-  }
+/* – CEFEPIME – */
+else if(atbSel === ‘cefepime’){
+var cns = g(‘opt-cefe’) && g(‘opt-cefe’).value === ‘cns’;
+h += ‘<div class="nums-grid">’ + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + nb(cns?‘2g q8h’:‘2g q12h’,‘dose HAB’) + nb(cns?‘high target’:‘padrao’,‘modo’) + ‘</div>’;
+if(cns){
+/* high target: CrCl >90: 2g q8h; 50-90: 2g q12h; 10-49: 2g q24h; <10: 1g q24h */
+if(c > 90)       h += rb(‘green’,‘Dose ajustada (SNC/alto alvo)’,‘LD 2g bolus, depois 2g q8h’,‘Infusao EV em 3h’);
+else if(c > 50)  h += rb(‘amber’,‘Dose ajustada (SNC/alto alvo)’,‘LD 2g bolus, depois 2g q12h’,‘Infusao EV em 3h — CrCl 51–90’);
+else if(c > 10)  h += rb(‘amber’,‘Dose ajustada (SNC/alto alvo)’,‘LD 2g bolus, depois 2g q24h’,‘Infusao EV em 3h — CrCl 10–50’);
+else             h += rb(‘red’,‘Dose ajustada (SNC/alto alvo)’,‘LD 2g bolus, depois 1g q24h’,‘CrCl <10’);
+} else {
+/* std: >90: 2g q8h; 50-90: 1g q8h; 31-50: 1g q12h; 10-30: 1g q24h; <10: 1g q24h */
+/* Guia HAB 2023: 2g q12h (usual); CrCl 30-50: 2g q12h; CrCl 10-30: 2g q24h; <10: 1g q24h */
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘2g q12h’,‘Infusao EV em 3h — CrCl >50’);
+else if(c > 30)  h += rb(‘amber’,‘Dose ajustada (HAB)’,‘2g q12h’,‘Infusao EV em 3h — CrCl 30–50 (sem reducao de dose, manter q12h)’);
+else if(c > 10)  h += rb(‘amber’,‘Dose ajustada (HAB)’,‘2g q24h’,‘Infusao EV em 3h — CrCl 10–30: manter dose, aumentar intervalo’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘1g q24h’,‘CrCl <10 mL/min’);
+}
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘1g q24h + dose adicional 1g apos HD’,‘Administrar dose suplementar de 1g apos cada sessao de HD’);
+h += info(‘Bolus inicial em 30min; infusoes de manutencao em 3h (otimiza %T>MIC).’);
+h += aviso(‘Neurotoxicidade pelo cefepime e dose e funcao-renal dependente: encefalopatia, mioclonias, convulsoes e coma nao-convulsivo. Risco aumentado em CrCl <30 e idosos. Monitorar nivel de consciencia e reduzir dose precocemente se alteracoes neurologicas.’);
+}
 
-  /* -- CEFEPIME -- */
-  else if(atbSel === 'cefepime'){
-    var cns = g('opt-cefe') && g('opt-cefe').value === 'cns';
-    h += '<div class="nums-grid">' + nb(fmt(c,0)+' mL/min','CrCl') + nb(cns?'2g q8h':'2g q12h','dose HAB') + nb(cns?'high target':'padrao','modo') + '</div>';
-    if(cns){
-      /* high target: CrCl >90: 2g q8h; 50-90: 2g q12h; 10-49: 2g q24h; <10: 1g q24h */
-      if(c > 90)       h += rb('green','Dose ajustada (SNC/alto alvo)','LD 2g bolus, depois 2g q8h','Infusao EV em 3h');
-      else if(c > 50)  h += rb('amber','Dose ajustada (SNC/alto alvo)','LD 2g bolus, depois 2g q12h','Infusao EV em 3h &mdash; CrCl 51&ndash;90');
-      else if(c > 10)  h += rb('amber','Dose ajustada (SNC/alto alvo)','LD 2g bolus, depois 2g q24h','Infusao EV em 3h &mdash; CrCl 10&ndash;50');
-      else             h += rb('red','Dose ajustada (SNC/alto alvo)','LD 2g bolus, depois 1g q24h','CrCl &lt;10');
-    } else {
-      /* std: >90: 2g q8h; 50-90: 1g q8h; 31-50: 1g q12h; 10-30: 1g q24h; <10: 1g q24h */
-      /* Guia HAB 2023: 2g q12h (usual); CrCl 30-50: 2g q12h; CrCl 10-30: 2g q24h; <10: 1g q24h */
-      if(c > 50)       h += rb('green','Dose ajustada (HAB)','2g q12h','Infusao EV em 3h &mdash; CrCl &gt;50');
-      else if(c > 30)  h += rb('amber','Dose ajustada (HAB)','2g q12h','Infusao EV em 3h &mdash; CrCl 30&ndash;50 (sem reducao de dose, manter q12h)');
-      else if(c > 10)  h += rb('amber','Dose ajustada (HAB)','2g q24h','Infusao EV em 3h &mdash; CrCl 10&ndash;30: manter dose, aumentar intervalo');
-      else             h += rb('red','Dose ajustada (HAB)','1g q24h','CrCl &lt;10 mL/min');
-    }
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','1g q24h + dose adicional 1g apos HD','Administrar dose suplementar de 1g apos cada sessao de HD');
-    h += info('Bolus inicial de 30min; infusao de manutencao em 3h. Neurotoxicidade dose-dependente: monitorar em IR grave.');
-  }
+/* – VANCOMICINA – */
+else if(atbSel === ‘vanco’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de Vancomicina.’); return; }
+var dose = Math.round(15 * pesoR / 250) * 250; /* arredondar para 250mg */
+h += ‘<div class="nums-grid">’ + nb(dose+‘mg’,‘dose 15mg/kg’) + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + nb(‘AUC 400–600’,‘alvo mg\xb7h/L’) + ‘</div>’;
+/* Guia HAB 2023: CrCl 50-90: 30mg/kg q12h; CrCl 10-50: 15mg/kg q48h; <10: 7,5mg/kg q48h */
+/* HD: diaria 15mg/kg; cada 2 dias: 25mg/kg; cada 3 dias: 35mg/kg */
+var dose30 = Math.round(30 * pesoR / 250) * 250;
+var dose15 = Math.round(15 * pesoR / 250) * 250;
+var dose75 = Math.round(7.5 * pesoR / 250) * 250;
+if(c > 50){
+h += rb(‘green’,‘Dose ajustada (HAB)’,‘30 mg/kg q12h (’ + dose30 + ‘mg q12h)’,‘CrCl >50 mL/min — dose plena conforme HAB<br>Ajustar por nivel/AUC apos 3a dose’);
+} else if(c >= 10){
+h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl 10–50’,‘15 mg/kg q48h (’ + dose15 + ‘mg q48h)’,‘Intervalo estendido para 48h’);
+} else {
+h += rb(‘red’,‘Dose ajustada (HAB) — CrCl <10’,‘7,5 mg/kg q48h (’ + dose75 + ‘mg q48h)’,‘Dose reduzida e intervalo 48h’);
+}
+if(emHD){
+h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘Conforme frequencia de HD:<br>Diaria: 15mg/kg | A cada 2 dias: 25mg/kg | A cada 3 dias: 35mg/kg’,‘Guia HAB recomenda esquema por frequencia de HD.<br>*Optar por outro esquema se necessidade de vancocinemia (nivel)’);
+h += aviso(‘HAB: necessidade de vancocinemia pode indicar outro esquema. Discutir com farmacia clinica.’);
+}
+h += danger(‘Evitar associacao com pip-taz (risco de nefrotoxicidade aumentado). Preferir cefazolina para MRSA quando possivel.’);
+h += info(‘Meta AUC/MIC: 400–600 mg\u00b7h/L (ASHP/IDSA/SIDP 2020). Dose calculada pelo peso real. Coleta para AUC: nivel pre e pos 3a ou 4a dose em regime estavel. Nao usar trough isolado como alvo.’);
+}
 
-  /* -- VANCOMICINA -- */
-  else if(atbSel === 'vanco'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de Vancomicina.'); return; }
-    var dose = Math.round(15 * pesoR / 250) * 250; /* arredondar para 250mg */
-    h += '<div class="nums-grid">' + nb(dose+'mg','dose 15mg/kg') + nb(fmt(c,0)+' mL/min','CrCl') + nb('AUC 400&ndash;600','alvo mg\xb7h/L') + '</div>';
-    /* Guia HAB 2023: CrCl 50-90: 30mg/kg q12h; CrCl 10-50: 15mg/kg q48h; <10: 7,5mg/kg q48h */
-    /* HD: diaria 15mg/kg; cada 2 dias: 25mg/kg; cada 3 dias: 35mg/kg */
-    var dose30 = Math.round(30 * pesoR / 250) * 250;
-    var dose15 = Math.round(15 * pesoR / 250) * 250;
-    var dose75 = Math.round(7.5 * pesoR / 250) * 250;
-    if(c > 50){
-      h += rb('green','Dose ajustada (HAB)','30 mg/kg q12h (' + dose30 + 'mg q12h)','CrCl &gt;50 mL/min &mdash; dose plena conforme HAB<br>Ajustar por nivel/AUC apos 3a dose');
-    } else if(c >= 10){
-      h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;50','15 mg/kg q48h (' + dose15 + 'mg q48h)','Intervalo estendido para 48h');
-    } else {
-      h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10','7,5 mg/kg q48h (' + dose75 + 'mg q48h)','Dose reduzida e intervalo 48h');
-    }
-    if(c < 10){
-      h += rb('purple','Em HD intermitente (HAB)','Conforme frequencia de HD:<br>Diaria: 15mg/kg | A cada 2 dias: 25mg/kg | A cada 3 dias: 35mg/kg','Guia HAB recomenda esquema por frequencia de HD.<br>*Optar por outro esquema se necessidade de vancocinemia (nivel)');
-      h += aviso('HAB: necessidade de vancocinemia pode indicar outro esquema. Discutir com farmacia clinica.');
-    }
-    h += danger('Evitar associacao com pip-taz (risco de nefrotoxicidade aumentado). Preferir cefazolina para MRSA quando possivel.');
-    h += info('Meta AUC 24h: 400&ndash;600 mg\xb7h/L (consenso ASHP/IDSA/SIDP 2020). Peso: peso real para calculo de dose.');
-  }
+/* – AMICACINA – */
+else if(atbSel === ‘amicacina’){
+var pesoR = fv(‘peso’), altcm = fv(‘altura’), sexo = g(‘sexo’).value;
+if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose.’); return; }
+var ibw = altcm ? calcIBW(altcm, sexo) : null;
+var adj = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
+var pesoD = adj || ibw || pesoR || 70;
+var pesoLbl = adj ? ‘PCA’ : (ibw ? ‘IBW’ : ‘peso real’);
+var mgkg = g(‘opt-ami’) ? parseInt(g(‘opt-ami’).value) : 15;
+var doseCalc = Math.round(mgkg * pesoD / 50) * 50;
 
-  /* -- AMICACINA -- */
-  else if(atbSel === 'amicacina'){
-    var pesoR = fv('peso'), altcm = fv('altura'), sexo = g('sexo').value;
-    if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose.'); return; }
-    var ibw = altcm ? calcIBW(altcm, sexo) : null;
-    var adj = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
-    var pesoD = adj || ibw || pesoR || 70;
-    var pesoLbl = adj ? 'PCA' : (ibw ? 'IBW' : 'peso real');
-    var mgkg = g('opt-ami') ? parseInt(g('opt-ami').value) : 15;
-    var doseCalc = Math.round(mgkg * pesoD / 50) * 50;
+```
+h += '<div class="nums-grid">' + nb(fmt(pesoD,1)+'kg','peso ('+pesoLbl+')') + nb(mgkg+' mg/kg','dose base') + nb(doseCalc+'mg','dose calculada') + '</div>';
 
-    h += '<div class="nums-grid">' + nb(fmt(pesoD,1)+'kg','peso ('+pesoLbl+')') + nb(mgkg+' mg/kg','dose base') + nb(doseCalc+'mg','dose calculada') + '</div>';
+/* Guia HAB 2023: 15mg/kg q24h; CrCl 50-90: 15mg/kg q24h; */
+/* CrCl 30-50: 7,5mg/kg q24h; CrCl 10-30: 7,5mg/kg q48h; <10: 7,5mg/kg q72h */
+/* HD: dose adicional 7,5mg/kg apos HD */
+var doseHalf = Math.round(7.5 * pesoD / 50) * 50;
+if(c >= 50){
+  h += rb('green','Dose ajustada (HAB)',doseCalc+'mg q24h','CrCl &ge;50: dose plena q24h');
+} else if(c >= 30){
+  h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 30&ndash;49',doseHalf+'mg q24h','7,5 mg/kg q24h &mdash; reducao para metade da dose, manter q24h');
+} else if(c >= 10){
+  h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;29',doseHalf+'mg q48h','7,5 mg/kg q48h &mdash; reducao de dose e extensao de intervalo');
+} else {
+  h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10',doseHalf+'mg q72h','7,5 mg/kg q72h');
+}
+if(emHD){
+  h += rb('purple','Em HD intermitente (HAB)',doseHalf+'mg apos cada sessao de HD','Dose adicional de 7,5 mg/kg apos HD. Checar nivel pre-HD antes de redosar.');
+}
+h += info('Dose por IBW (ou PCA se obeso). Alvo Cpeak/MIC \u22658\u201310 (concentracao-dependente). Vale pre-dose &lt;1 mg/L. Monitorar funcao renal e audiometria em uso prolongado.');
+```
 
-    /* Guia HAB 2023: 15mg/kg q24h; CrCl 50-90: 15mg/kg q24h; */
-    /* CrCl 30-50: 7,5mg/kg q24h; CrCl 10-30: 7,5mg/kg q48h; <10: 7,5mg/kg q72h */
-    /* HD: dose adicional 7,5mg/kg apos HD */
-    var doseHalf = Math.round(7.5 * pesoD / 50) * 50;
-    if(c >= 50){
-      h += rb('green','Dose ajustada (HAB)',doseCalc+'mg q24h','CrCl &ge;50: dose plena q24h');
-    } else if(c >= 30){
-      h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 30&ndash;49',doseHalf+'mg q24h','7,5 mg/kg q24h &mdash; reducao para metade da dose, manter q24h');
-    } else if(c >= 10){
-      h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;29',doseHalf+'mg q48h','7,5 mg/kg q48h &mdash; reducao de dose e extensao de intervalo');
-    } else {
-      h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10',doseHalf+'mg q72h','7,5 mg/kg q72h');
-    }
-    if(c < 10){
-      h += rb('purple','Em HD intermitente (HAB)',doseHalf+'mg apos cada sessao de HD','Dose adicional de 7,5 mg/kg apos HD. Checar nivel pre-HD antes de redosar.');
-    }
-    h += info('Aminoglicosideos: dose por IBW ou PCA (nao peso real em obesidade). Alvo Cpeak/MIC &ge;8&ndash;10. Nivel pre (vale) < 1 mg/L para amicacina. Monitorar ototoxicidade e nefrotoxicidade.');
-  }
+}
 
-  /* -- GENTAMICINA -- */
-  else if(atbSel === 'gentamicina'){
-    var pesoR = fv('peso'), altcm = fv('altura'), sexo = g('sexo').value;
-    if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose.'); return; }
-    var ibw = altcm ? calcIBW(altcm, sexo) : null;
-    var adj = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
-    var pesoD = adj || ibw || pesoR || 70;
-    var pesoLbl = adj ? 'PCA' : (ibw ? 'IBW' : 'peso real');
-    var mgkg = g('opt-genta') ? parseInt(g('opt-genta').value) : 5;
-    var doseCalc = Math.round(mgkg * pesoD / 10) * 10;
-    if(doseCalc > 600) doseCalc = 600;
+/* – GENTAMICINA – */
+else if(atbSel === ‘gentamicina’){
+var pesoR = fv(‘peso’), altcm = fv(‘altura’), sexo = g(‘sexo’).value;
+if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose.’); return; }
+var ibw = altcm ? calcIBW(altcm, sexo) : null;
+var adj = (ibw && pesoR && pesoR > ibw) ? ibw + 0.4*(pesoR-ibw) : null;
+var pesoD = adj || ibw || pesoR || 70;
+var pesoLbl = adj ? ‘PCA’ : (ibw ? ‘IBW’ : ‘peso real’);
+var mgkg = g(‘opt-genta’) ? parseInt(g(‘opt-genta’).value) : 5;
+var doseCalc = Math.round(mgkg * pesoD / 10) * 10;
+if(doseCalc > 600) doseCalc = 600;
 
-    h += '<div class="nums-grid">' + nb(fmt(pesoD,1)+'kg','peso ('+pesoLbl+')') + nb(mgkg+' mg/kg','dose base') + nb(doseCalc+'mg','dose calculada') + '</div>';
+```
+h += '<div class="nums-grid">' + nb(fmt(pesoD,1)+'kg','peso ('+pesoLbl+')') + nb(mgkg+' mg/kg','dose base') + nb(doseCalc+'mg','dose calculada') + '</div>';
 
-    /* Guia HAB 2023: 2mg/kg q8h usual; CrCl >50: sem ajuste; */
-    /* CrCl 10-50: 2mg/kg q12-24h; <10: 2mg/kg q48h; HD: dose adicional 50% apos HD */
-    var doseQ8 = Math.round(mgkg * pesoD / 10) * 10; if(doseQ8>600) doseQ8=600;
-    var doseHD50 = Math.round(doseQ8 * 0.5 / 10) * 10;
-    if(c > 50){
-      h += rb('green','Dose ajustada (HAB)',doseQ8+'mg q8h','CrCl &gt;50: sem ajuste necessario');
-    } else if(c >= 10){
-      h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;50',doseQ8+'mg q12&ndash;24h','Estender intervalo para q12h (CrCl 30&ndash;50) ou q24h (CrCl 10&ndash;30)');
-    } else {
-      h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10',doseQ8+'mg q48h','Intervalo estendido para q48h');
-    }
-    if(c < 10){
-      h += rb('purple','Em HD intermitente (HAB)',doseHD50+'mg apos cada sessao de HD','Dose adicional de 50% da dose habitual apos HD');
-    }
-    h += info('Dose por IBW ou PCA. Gentamicina: nivel pre < 1 mg/L (0,5 preferencial), Cpeak 10&ndash;12 mg/L. Nomograma Hartford: verificar nivel 6&ndash;14h apos dose e consultar nomograma.');
-  }
+/* Guia HAB 2023: 2mg/kg q8h usual; CrCl >50: sem ajuste; */
+/* CrCl 10-50: 2mg/kg q12-24h; <10: 2mg/kg q48h; HD: dose adicional 50% apos HD */
+var doseQ8 = Math.round(mgkg * pesoD / 10) * 10; if(doseQ8>600) doseQ8=600;
+var doseHD50 = Math.round(doseQ8 * 0.5 / 10) * 10;
+if(c > 50){
+  h += rb('green','Dose ajustada (HAB)',doseQ8+'mg q8h','CrCl &gt;50: sem ajuste necessario');
+} else if(c >= 10){
+  h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;50',doseQ8+'mg q12&ndash;24h','Estender intervalo para q12h (CrCl 30&ndash;50) ou q24h (CrCl 10&ndash;30)');
+} else {
+  h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10',doseQ8+'mg q48h','Intervalo estendido para q48h');
+}
+if(emHD){
+  h += rb('purple','Em HD intermitente (HAB)',doseHD50+'mg apos cada sessao de HD','Dose adicional de 50% da dose habitual apos HD');
+}
+h += info('Dose por IBW (ou PCA se obeso). Vale pre-dose &lt;1 mg/L (ideal &lt;0,5). Cpeak alvo 10\u201312 mg/L. Nomograma Hartford: coletar nivel entre 6\u201314h apos 1a dose e localizar na curva para definir intervalo seguro.');
+```
 
-  /* -- POLIMIXINA B -- */
-  else if(atbSel === 'polb'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de Polimixina B.'); return; }
-    var ldose = fmt(2.0 * pesoR / 1000 * 1000, 0); /* 2 mg/kg em mg */
-    var maint1 = fmt(1.25 * pesoR, 0);
-    var maint2 = fmt(1.5  * pesoR, 0);
-    h += '<div class="nums-grid">' + nb(fmt(pesoR,1)+'kg','peso real') + nb('2 mg/kg','dose ataque') + nb('1,25&ndash;1,5 mg/kg q12h','manutencao') + '</div>';
-    h += rb('blue','Polimixina B &mdash; SEM ajuste renal',
-      'LD: ' + fmt(2.0*pesoR,0) + 'mg x1 &nbsp;|&nbsp; Manutencao: ' + maint1 + '&ndash;' + maint2 + 'mg q12h',
-      'Polimixina B e eliminada principalmente por vias nao-renais (&lt;4% excrecao urinaria)<br>' +
-      'International Consensus Guidelines: N\u00c3O ajustar dose por funcao renal<br>' +
-      'Dose de ataque: 2,0&ndash;2,5 mg/kg IV em 1h (reduz latencia para nivel estavel)<br>' +
-      'Manutencao: 1,25&ndash;1,5 mg/kg q12h (peso real)'
-    );
-    if(c < 10) h += rb('purple','Em HD intermitente','Manutencao: ' + maint1 + '&ndash;' + maint2 + 'mg q12h (inalterado)','Polimixina B NAO e dializavel de forma significativa &mdash; manter dose sem ajuste para HD');
-    h += aviso('Nefrotoxicidade classe-efeito: monitorar creatinina diariamente. Evitar coassociacao com aminoglicosideos, anfotericina B, e contraste iodado. Exige consulta ID.');
-    h += info('Dose em mg (nao em unidades). Converter: 10.000 unidades = 1 mg. Preparar em SF 0,9% 200&ndash;500 mL. Infundir em 1h. Meia-vida ~12h: regime q12h obrigatorio para expositura adequada.');
-  }
+}
 
-  /* -- COLISTINA (CMS) -- */
-  else if(atbSel === 'colistina'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de Colistina.'); return; }
-    /* Dose em CBA (colistin base activity) por kg */
-    /* CrCl >=80: 2,5 mg/kg CBA q12h; CrCl 50-79: 1,9 mg/kg q12h; CrCl 30-49: 2,5 mg/kg q24h; CrCl 10-29: 1,5 mg/kg q36h; <10: 1,5 mg/kg q48h */
-    var doseCBA, freq, obs;
-    if(c >= 80){       doseCBA = 2.5; freq = 'q12h'; obs = 'CrCl &ge;80'; }
-    else if(c >= 50){  doseCBA = 1.9; freq = 'q12h'; obs = 'CrCl 50&ndash;79'; }
-    else if(c >= 30){  doseCBA = 2.5; freq = 'q24h'; obs = 'CrCl 30&ndash;49 &mdash; mesma dose, intervalo maior'; }
-    else if(c >= 10){  doseCBA = 1.5; freq = 'q36h'; obs = 'CrCl 10&ndash;29'; }
-    else{              doseCBA = 1.5; freq = 'q48h'; obs = 'CrCl &lt;10 / anefrico'; }
+/* – POLIMIXINA B – */
+else if(atbSel === ‘polb’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de Polimixina B.’); return; }
+var ldose = fmt(2.0 * pesoR / 1000 * 1000, 0); /* 2 mg/kg em mg */
+var maint1 = fmt(1.25 * pesoR, 0);
+var maint2 = fmt(1.5  * pesoR, 0);
+h += ‘<div class="nums-grid">’ + nb(fmt(pesoR,1)+‘kg’,‘peso real’) + nb(‘2 mg/kg’,‘dose ataque’) + nb(‘1,25–1,5 mg/kg q12h’,‘manutencao’) + ‘</div>’;
+h += rb(‘blue’,‘Polimixina B — SEM ajuste renal’,
+’LD: ’ + fmt(2.0*pesoR,0) + ’mg x1  |  Manutencao: ’ + maint1 + ‘–’ + maint2 + ‘mg q12h’,
+‘Polimixina B e eliminada principalmente por vias nao-renais (<4% excrecao urinaria)<br>’ +
+‘International Consensus Guidelines: N\u00c3O ajustar dose por funcao renal<br>’ +
+‘Dose de ataque: 2,0–2,5 mg/kg IV em 1h (reduz latencia para nivel estavel)<br>’ +
+‘Manutencao: 1,25–1,5 mg/kg q12h (peso real)’
+);
+if(c < 10) h += rb(‘purple’,‘Em HD intermitente’,’Manutencao: ’ + maint1 + ‘–’ + maint2 + ‘mg q12h (inalterado)’,‘Polimixina B NAO e dializavel de forma significativa — manter dose sem ajuste para HD’);
+h += aviso(‘Nefrotoxicidade classe-efeito: monitorar creatinina diariamente. Evitar coassociacao com aminoglicosideos, anfotericina B, e contraste iodado. Exige consulta ID.’);
+h += info(‘Doses em mg e UI: 10.000 UI = 1 mg. Preparar em SF 0,9% 200\u2013500 mL; infundir em 1h. Meia-vida ~12h \u2014 intervalo q12h e obrigatorio para exposicao adequada. Dose de ataque reduz tempo para estado estacionario.’);
+}
 
-    var doseMgCBA = fmt(doseCBA * pesoR, 0);
-    /* Converter CBA para CMS: 1 mg CBA = ~2,4 mg CMS (MUI: 1 MUI = 30 mg CMS = 12,5 mg CBA) */
-    var doseMgCMS = fmt(doseCBA * pesoR * 2.4, 0);
-    var doseMUI   = fmt(doseCBA * pesoR / 12.5, 1);
+/* – COLISTINA (CMS) – */
+else if(atbSel === ‘colistina’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de Colistina.’); return; }
+/* Dose em CBA (colistin base activity) por kg */
+/* CrCl >=80: 2,5 mg/kg CBA q12h; CrCl 50-79: 1,9 mg/kg q12h; CrCl 30-49: 2,5 mg/kg q24h; CrCl 10-29: 1,5 mg/kg q36h; <10: 1,5 mg/kg q48h */
+var doseCBA, freq, obs;
+if(c >= 80){       doseCBA = 2.5; freq = ‘q12h’; obs = ‘CrCl ≥80’; }
+else if(c >= 50){  doseCBA = 1.9; freq = ‘q12h’; obs = ‘CrCl 50–79’; }
+else if(c >= 30){  doseCBA = 2.5; freq = ‘q24h’; obs = ‘CrCl 30–49 — mesma dose, intervalo maior’; }
+else if(c >= 10){  doseCBA = 1.5; freq = ‘q36h’; obs = ‘CrCl 10–29’; }
+else{              doseCBA = 1.5; freq = ‘q48h’; obs = ‘CrCl <10 / anefrico’; }
 
-    h += '<div class="nums-grid">' + nb(doseCBA+' mg/kg','CBA por dose') + nb(doseMgCBA+'mg CBA','dose calculada') + nb(doseMUI+' MUI','dose em MUI') + '</div>';
-    var cor = (c < 30) ? 'red' : (c < 60 ? 'amber' : 'green');
-    h += rb(cor,'Colistina (CMS) &mdash; Dose por CBA',
-      doseMgCBA + 'mg CBA (' + doseMgCMS + 'mg CMS / ' + doseMUI + ' MUI) ' + freq,
-      obs + '<br>Dose em CBA: ' + doseCBA + ' mg/kg &times; ' + fmt(pesoR,1) + 'kg = ' + doseMgCBA + 'mg CBA<br>' +
-      'Equivalencia CMS: 1 mg CBA = ~2,4 mg CMS; 1 MUI = 12,5 mg CBA'
-    );
-    if(c < 10){
-      h += rb('purple','Em HD intermitente','1,5 mg/kg CBA q48h (' + fmt(1.5*pesoR,0) + 'mg CBA)','Colistina e parcialmente dializavel. Dose equivalente ao regime CrCl &lt;10.<br>Administrar pos-HD nos dias de sessao.');
-    }
-    h += aviso('Dose de ataque recomendada (independente da funcao renal): 9 MUI IV x1 para saturar proteinas plasmaticas e atingir niveis terapeuticos mais rapidamente. Monitorar funcao renal diariamente.');
-    h += danger('Colistina: alto risco de nefrotoxicidade. Preferir polimixina B em infeccoes sistemicas graves quando disponivel. Exige consulta ID. Usar apenas para MDR/XDR sem alternativa.');
-    h += info('Colistina e pro-farmaco de CMS (colistimetato sodico). Dose calculada em CBA (forma ativa). Niveis plasm\u00e1ticos erraticos &mdash; monitoramento TDM quando disponivel.');
-  }
+```
+var doseMgCBA = fmt(doseCBA * pesoR, 0);
+/* Converter CBA para CMS: 1 mg CBA = ~2,4 mg CMS (MUI: 1 MUI = 30 mg CMS = 12,5 mg CBA) */
+var doseMgCMS = fmt(doseCBA * pesoR * 2.4, 0);
+var doseMUI   = fmt(doseCBA * pesoR / 12.5, 1);
 
+h += '<div class="nums-grid">' + nb(doseCBA+' mg/kg','CBA por dose') + nb(doseMgCBA+'mg CBA','dose calculada') + nb(doseMUI+' MUI','dose em MUI') + '</div>';
+var cor = (c < 30) ? 'red' : (c < 60 ? 'amber' : 'green');
+h += rb(cor,'Colistina (CMS) &mdash; Dose por CBA',
+  doseMgCBA + 'mg CBA (' + doseMgCMS + 'mg CMS / ' + doseMUI + ' MUI) ' + freq,
+  obs + '<br>Dose em CBA: ' + doseCBA + ' mg/kg &times; ' + fmt(pesoR,1) + 'kg = ' + doseMgCBA + 'mg CBA<br>' +
+  'Equivalencia CMS: 1 mg CBA = ~2,4 mg CMS; 1 MUI = 12,5 mg CBA'
+);
+if(c < 10){
+  if(emHD) h += rb('purple','Em HD intermitente','1,5 mg/kg CBA q48h (' + fmt(1.5*pesoR,0) + 'mg CBA)','Colistina e parcialmente dializavel. Dose equivalente ao regime CrCl &lt;10.<br>Administrar pos-HD nos dias de sessao.');
+}
+h += aviso('Dose de ataque recomendada (independente da funcao renal): 9 MUI IV x1 para saturar proteinas plasmaticas e atingir niveis terapeuticos mais rapidamente. Monitorar funcao renal diariamente.');
+h += danger('Colistina: alto risco de nefrotoxicidade. Preferir polimixina B em infeccoes sistemicas graves quando disponivel. Exige consulta ID. Usar apenas para MDR/XDR sem alternativa.');
+h += info('Colistina (CMS = colistimetato sodico) e pro-farmaco inativo convertido in vivo em colistina ativa. Dose prescrita em CBA (colistin base activity). Farmacocinetica altamente variavel \u2014 TDM recomendado quando disponivel. Inicio de acao retardado: dose de ataque e essencial.');
+```
 
-  /* \u2500\u2500 CEFTAZIDIMA \u2500\u2500 */
-  else if(atbSel === 'ceftazidima'){
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','1&ndash;2g q8&ndash;12h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','1&ndash;2g q12h','CrCl 10&ndash;50');
-    else             h += rb('red','Dose ajustada (HAB)','1&ndash;2g q24h','CrCl &lt;10');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','1&ndash;2g q24h + dose adicional 0,5&ndash;1g apos HD','Suplementar apos cada sessao');
-    h += aviso('Sem cobertura para MRSA. Cobertura para Pseudomonas aeruginosa. Sem atividade AmpC-estavel (diferente do cefepime).');
-  }
+}
 
-  /* \u2500\u2500 ERTAPENEM \u2500\u2500 */
-  else if(atbSel === 'ertapenem'){
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','1g q24h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','500mg q24h','CrCl 10&ndash;50: reducao para 500mg');
-    else             h += rb('red','Dose ajustada (HAB)','500mg q24h','CrCl &lt;10: mesma dose');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','500mg q24h + dose adicional 150mg apos HD','Suplementar 150mg apos cada sessao');
-    h += danger('Ertapenem NAO cobre Pseudomonas aeruginosa nem Acinetobacter. Nao usar quando esses patogenos sao suspeitos.');
-  }
+/* \u2500\u2500 CEFTAZIDIMA \u2500\u2500 */
+else if(atbSel === ‘ceftazidima’){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘1–2g q8–12h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘1–2g q12h’,‘CrCl 10–50’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘1–2g q24h’,‘CrCl <10’);
+if(c < 10) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘1–2g q24h + dose adicional 0,5–1g apos HD’,‘Suplementar apos cada sessao’);
+h += aviso(‘Cobertura para Pseudomonas aeruginosa, mas hidrolisal por AmpC induzivel (diferente do cefepime que e AmpC-estavel). Sem cobertura para MRSA. Em Enterobacter, Serratia e Citrobacter: risco de falha por desrepressao de AmpC durante tratamento.’);
+}
 
-  /* \u2500\u2500 AMOXICILINA-CLAVULANATO \u2500\u2500 */
-  else if(atbSel === 'amoxiclav'){
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','500/125mg q8h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','500/125mg q12h','CrCl 10&ndash;50: estender para q12h');
-    else             h += rb('red','Dose ajustada (HAB)','500/125mg q24h','CrCl &lt;10');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','500/125mg q24h + dose adicional 500/125mg apos HD','Suplementar apos cada sessao de HD');
-    h += info('Dose baseada no componente amoxicilina. Evitar comprimidos 875mg em CrCl &lt;30 (risco acumulacao clavulanato).');
-  }
+/* \u2500\u2500 ERTAPENEM \u2500\u2500 */
+else if(atbSel === ‘ertapenem’){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘1g q24h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘500mg q24h’,‘CrCl 10–50: reducao para 500mg’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘500mg q24h’,‘CrCl <10: mesma dose’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘500mg q24h + dose adicional 150mg apos HD’,‘Suplementar 150mg apos cada sessao’);
+h += danger(‘Ertapenem NAO cobre Pseudomonas aeruginosa, Acinetobacter spp. nem Stenotrophomonas maltophilia. Reservar para infeccoes comunitarias por ESBL sem suspeita de Pseudomonas.’);
+}
 
-  /* \u2500\u2500 CIPROFLOXACINA IV \u2500\u2500 */
-  else if(atbSel === 'cipro'){
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','400mg q12h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','400mg q24h','CrCl 10&ndash;50: estender para q24h');
-    else             h += rb('red','Dose ajustada (HAB)','400mg q24h','CrCl &lt;10');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','200mg q12h &mdash; sem dose adicional apos HD','Reducao de dose em HD; NAO suplementar');
-    h += info('Boa biodisponibilidade oral (~80%). Considerar step-down para ciprofloxacina 500&ndash;750mg VO q12h quando tolerado.');
-  }
+/* \u2500\u2500 AMOXICILINA-CLAVULANATO \u2500\u2500 */
+else if(atbSel === ‘amoxiclav’){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘500/125mg q8h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘500/125mg q12h’,‘CrCl 10–50: estender para q12h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘500/125mg q24h’,‘CrCl <10’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘500/125mg q24h + dose adicional 500/125mg apos HD’,‘Suplementar apos cada sessao de HD’);
+h += info(‘Dose baseada no componente amoxicilina. Evitar comprimidos 875mg em CrCl <30 (risco acumulacao clavulanato).’);
+}
 
-  /* \u2500\u2500 LEVOFLOXACINA \u2500\u2500 */
-  else if(atbSel === 'levo'){
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','750mg q24h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','750mg q48h','CrCl 10&ndash;50: estender para q48h');
-    else             h += rb('red','Dose ajustada (HAB)','750mg ataque x1, depois 500mg q48h','CrCl &lt;10: dose de ataque 750mg, manutencao 500mg q48h');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','1a dose 750mg, depois 500mg q48h &mdash; sem dose adicional apos HD','Primeira dose 750mg; manutencao 500mg q48h; NAO suplementar');
-    h += info('Excelente biodisponibilidade oral. Step-down VO 750mg q24h quando tolerado. Prolongar QTc: monitorar ECG em risco.');
-  }
+/* \u2500\u2500 CIPROFLOXACINA IV \u2500\u2500 */
+else if(atbSel === ‘cipro’){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘400mg q12h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘400mg q24h’,‘CrCl 10–50: estender para q24h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘400mg q24h’,‘CrCl <10’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘200mg q12h — sem dose adicional apos HD’,‘Reducao de dose em HD; NAO suplementar’);
+h += info(‘Biodisponibilidade oral ~80%: step-down precoce para 500\u2013750mg VO q12h quando tolerado e recomendado. Ciprofloxacina EV raramente e superior ao VO em pacientes que absorvem bem.’);
+}
 
-  /* \u2500\u2500 DAPTOMICINA \u2500\u2500 */
-  else if(atbSel === 'dapto'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de Daptomicina.'); return; }
-    var d6  = Math.round(6  * pesoR / 250) * 250;
-    var d8  = Math.round(8  * pesoR / 250) * 250;
-    var d10 = Math.round(10 * pesoR / 250) * 250;
-    h += '<div class="nums-grid">' +
-      nb(fmt(pesoR,1)+'kg','peso real') +
-      nb(fmt(c,0)+' mL/min','CrCl') +
-      nb('AUC-guiado','monitorar CPK') +
-      '</div>';
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','4&ndash;6 mg/kg q24h (' + d6 + '&ndash;' + d8 + 'mg q24h)','CrCl &gt;50: sem ajuste');
-    else if(c >= 30) h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 30&ndash;50','4&ndash;6 mg/kg q24h (' + d6 + '&ndash;' + d8 + 'mg q24h)','CrCl 30&ndash;50: mesma dose');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;29','6 mg/kg q48h (' + d6 + 'mg q48h)','CrCl 10&ndash;30: manter dose, estender para q48h');
-    else             h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10','6 mg/kg q48h (' + d6 + 'mg q48h)','Mesma dose do CrCl 10-30');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','6 mg/kg q48h &mdash; administrar apos HD, sem dose adicional','Realizar a dose apos sessao de HD');
-    h += aviso('Monitorar CPK 2x/semana. Doses &gt;8 mg/kg aumentam risco de miopatia. Nao usar para pneumonia (inativado pelo surfactante).');
-    h += info('Para MRSA: preferir 8&ndash;10 mg/kg em bacteremia grave ou endocardite. Peso real para calculo.');
-  }
+/* \u2500\u2500 LEVOFLOXACINA \u2500\u2500 */
+else if(atbSel === ‘levo’){
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘750mg q24h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘750mg q48h’,‘CrCl 10–50: estender para q48h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘750mg ataque x1, depois 500mg q48h’,‘CrCl <10: dose de ataque 750mg, manutencao 500mg q48h’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘1a dose 750mg, depois 500mg q48h — sem dose adicional apos HD’,‘Primeira dose 750mg; manutencao 500mg q48h; NAO suplementar’);
+h += info(‘Excelente biodisponibilidade oral. Step-down VO 750mg q24h quando tolerado.’);
+h += aviso(‘Levofloxacina prolonga o intervalo QTc. Verificar ECG basal e monitorar em pacientes com: QTc basal >450ms, uso concomitante de outros agentes que prolongam QT (amiodarona, haloperidol, metadona, azitromicina, azolicos), hipocalemia, hipomagnesemia, bradicardia significativa ou IC grave.’);
+}
 
-  /* \u2500\u2500 METRONIDAZOL \u2500\u2500 */
-  else if(atbSel === 'metro'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de Metronidazol.'); return; }
-    var doseQ6 = fmt(7.5 * pesoR, 0);
-    h += '<div class="nums-grid">' + nb(fmt(pesoR,1)+'kg','peso') + nb(doseQ6+'mg','7,5 mg/kg') + nb(fmt(c,0)+' mL/min','CrCl') + '</div>';
-    if(c >= 10)      h += rb('green','Dose ajustada (HAB)',doseQ6+'mg q6h (7,5 mg/kg)','CrCl &ge;10: sem ajuste de dose ou intervalo');
-    else             h += rb('amber','Dose ajustada (HAB)',doseQ6+'mg q12h (7,5 mg/kg)','CrCl &lt;10: estender para q12h');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)',doseQ6+'mg q12h + dose adicional '+ doseQ6 +'mg apos HD','Suplementar 7,5 mg/kg apos cada sessao de HD');
-    h += info('Metronidazol oral tem biodisponibilidade quase completa. Para C. difficile leve-moderado: 500mg VO q8h (nao necessita ajuste renal). Para grave: preferir vancomicina oral 125mg q6h.');
-  }
+/* \u2500\u2500 DAPTOMICINA \u2500\u2500 */
+else if(atbSel === ‘dapto’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de Daptomicina.’); return; }
+var d6  = Math.round(6  * pesoR / 250) * 250;
+var d8  = Math.round(8  * pesoR / 250) * 250;
+var d10 = Math.round(10 * pesoR / 250) * 250;
+h += ‘<div class="nums-grid">’ +
+nb(fmt(pesoR,1)+‘kg’,‘peso real’) +
+nb(fmt(c,0)+’ mL/min’,‘CrCl’) +
+nb(‘AUC-guiado’,‘monitorar CPK’) +
+‘</div>’;
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘4–6 mg/kg q24h (’ + d6 + ‘–’ + d8 + ‘mg q24h)’,‘CrCl >50: sem ajuste’);
+else if(c >= 30) h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl 30–50’,‘4–6 mg/kg q24h (’ + d6 + ‘–’ + d8 + ‘mg q24h)’,‘CrCl 30–50: mesma dose’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl 10–29’,‘6 mg/kg q48h (’ + d6 + ‘mg q48h)’,‘CrCl 10–30: manter dose, estender para q48h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB) — CrCl <10’,‘6 mg/kg q48h (’ + d6 + ‘mg q48h)’,‘Mesma dose do CrCl 10-30’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘6 mg/kg q48h — administrar apos HD, sem dose adicional’,‘Realizar a dose apos sessao de HD’);
+h += aviso(‘Monitorar CPK 2x/semana (suspender se CPK >5x LSN com sintomas ou >10x LSN assintomatico). Nao usar para pneumonia: inativado pelo surfactante pulmonar. Evitar estatinas durante uso.’);
+h += info(‘Para bacteremia por MRSA ou endocardite: doses de 8\u201310 mg/kg sao superiores a 6 mg/kg em termos de clearance bacteriano. Dose calculada pelo peso real.’);
+}
 
-  /* \u2500\u2500 CLINDAMICINA \u2500\u2500 */
-  else if(atbSel === 'clinda'){
-    /* HAB: 600mg q8h; CrCl <10: 600mg q12h; sem dose adicional HD */
-    if(c >= 10)      h += rb('green','Dose ajustada (HAB)','600mg q8h','CrCl &ge;10: sem ajuste');
-    else             h += rb('amber','Dose ajustada (HAB) &mdash; CrCl &lt;10','600mg q12h','Reduzir frequencia para q12h');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','600mg q12h &mdash; sem dose adicional apos HD','NAO suplementar apos HD');
-    h += info('Metabolismo hepatico predominante. Ajuste renal minimo. Boa opcao em infeccoes por anaerobios e Gram-positivos. Risco de C. difficile.');
-  }
+/* \u2500\u2500 METRONIDAZOL \u2500\u2500 */
+else if(atbSel === ‘metro’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de Metronidazol.’); return; }
+var doseQ6 = fmt(7.5 * pesoR, 0);
+h += ‘<div class="nums-grid">’ + nb(fmt(pesoR,1)+‘kg’,‘peso’) + nb(doseQ6+‘mg’,‘7,5 mg/kg’) + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + ‘</div>’;
+if(c >= 10)      h += rb(‘green’,‘Dose ajustada (HAB)’,doseQ6+‘mg q6h (7,5 mg/kg)’,‘CrCl ≥10: sem ajuste de dose ou intervalo’);
+else             h += rb(‘amber’,‘Dose ajustada (HAB)’,doseQ6+‘mg q12h (7,5 mg/kg)’,‘CrCl <10: estender para q12h’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,doseQ6+’mg q12h + dose adicional ’+ doseQ6 +‘mg apos HD’,‘Suplementar 7,5 mg/kg apos cada sessao de HD’);
+h += info(‘Biodisponibilidade oral quase completa: preferir VO quando possivel. Para C. difficile: metronidazol 500mg VO q8h e opcao apenas em doenca leve sem alternativa; diretriz atual prefere vancomicina oral 125mg q6h ou fidaxomicina. Em doenca grave: vancomicina oral + metronidazol IV.’);
+}
 
-  /* \u2500\u2500 CLARITROMICINA \u2500\u2500 */
-  else if(atbSel === 'claritro'){
-    /* HAB: 500mg q12h; CrCl 10-50: 500mg q24h; <10: 500mg q24h; HD: +500mg p\u00f3s-HD */
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','500mg q12h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','500mg q24h','CrCl 10&ndash;50: reduzir para q24h');
-    else             h += rb('red','Dose ajustada (HAB)','500mg q24h','CrCl &lt;10');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','500mg q24h + dose adicional 500mg apos HD','Suplementar apos cada sessao de HD');
-    h += aviso('Claritromicina inibe CYP3A4: multiplas interacoes (estatinas, antifungicos, amiodarona, tacrolimus). Verificar interacoes antes de prescrever.');
-  }
+/* \u2500\u2500 CLINDAMICINA \u2500\u2500 */
+else if(atbSel === ‘clinda’){
+/* HAB: 600mg q8h; CrCl <10: 600mg q12h; sem dose adicional HD */
+if(c >= 10)      h += rb(‘green’,‘Dose ajustada (HAB)’,‘600mg q8h’,‘CrCl ≥10: sem ajuste’);
+else             h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl <10’,‘600mg q12h’,‘Reduzir frequencia para q12h’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘600mg q12h — sem dose adicional apos HD’,‘NAO suplementar apos HD’);
+h += info(‘Metabolismo hepatico \u2014 ajuste renal irrelevante na pratica. Boa atividade contra anaerobios e Streptococcus/Staphylococcus sensivel. Risco elevado de C. difficile: reavaliar necessidade em uso prolongado ou em pacientes de risco.’);
+}
 
-  /* \u2500\u2500 SMX-TMP \u2500\u2500 */
-  else if(atbSel === 'smxtmp'){
-    var pesoR = fv('peso'); if(!pesoR){ box.innerHTML = al('w','Informe o peso do paciente para calcular a dose de SMX-TMP.'); return; }
-    /* Dose em TMP: 20mg/kg/dia q6h = 5mg/kg q6h */
-    /* HAB: CrCl 50-90: 20mg/kg/dia q6h; CrCl 30-50: 20mg/kg/dia q6h; CrCl 10-30: 10mg/kg/dia q6h; <10: 10mg/kg q24h; HD: apos HD sem extra */
-    var dose_q6_full = fmt(20 * pesoR / 4 / 1, 0);  /* 5mg TMP/kg q6h */
-    var dose_q6_half = fmt(10 * pesoR / 4 / 1, 0);  /* 2,5mg TMP/kg q6h */
-    var dose_q24     = fmt(10 * pesoR, 0);            /* 10mg TMP/kg q24h */
-    h += '<div class="nums-grid">' + nb(fmt(pesoR,1)+'kg','peso') + nb(fmt(c,0)+' mL/min','CrCl') + nb('TMP','componente base') + '</div>';
-    if(c > 30)       h += rb('green','Dose ajustada (HAB)',dose_q6_full+'mg TMP q6h (20mg/kg/dia)','CrCl &gt;30: dose plena');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB) &mdash; CrCl 10&ndash;30',dose_q6_half+'mg TMP q6h (10mg/kg/dia)','Reducao de 50% da dose diaria, manter q6h');
-    else             h += rb('red','Dose ajustada (HAB) &mdash; CrCl &lt;10',dose_q24+'mg TMP q24h (10mg/kg)','Dose reducao e intervalo estendido para q24h');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)',dose_q24+'mg TMP &mdash; realizar apos HD, sem dose adicional','Administrar apos sessao; NAO suplementar');
-    h += info('Dose em mg de TMP (componente ativo). SMX-TMP 400/80mg = 1 comp simples; 800/160mg = 1 comp duplo (DS). PCP: doses maiores (5mg TMP/kg q8h).');
-    h += aviso('Hipercalemia dose-dependente (bloqueia secrecao tubular de K+). Monitorar K+ em IR. Nefrotoxicidade: aumenta creatinina por competicao tubular sem queda real de TFG.');
-  }
+/* \u2500\u2500 CLARITROMICINA \u2500\u2500 */
+else if(atbSel === ‘claritro’){
+/* HAB: 500mg q12h; CrCl 10-50: 500mg q24h; <10: 500mg q24h; HD: +500mg p\u00f3s-HD */
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘500mg q12h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘500mg q24h’,‘CrCl 10–50: reduzir para q24h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘500mg q24h’,‘CrCl <10’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘500mg q24h + dose adicional 500mg apos HD’,‘Suplementar apos cada sessao de HD’);
+h += aviso(‘Potente inibidor de CYP3A4 e P-gp: interacoes clinicamente relevantes com estatinas (risco de rabdomiolise), amiodarona (prolongamento QT aditivo), tacrolimus/ciclosporina (aumento de niveis), warfarina e antifungicos azolicos. Verificar todas as medicacoes em uso antes de prescrever.’);
+}
 
-  /* \u2500\u2500 FLUCONAZOL \u2500\u2500 */
-  else if(atbSel === 'fluconazol'){
-    var dose_alvo = 400; /* default 400mg */
-    h += '<div class="nums-grid">' + nb(fmt(c,0)+' mL/min','CrCl') + nb('200&ndash;400mg','faixa usual') + nb('q24h','intervalo base') + '</div>';
-    if(c > 50)       h += rb('green','Dose ajustada (HAB)','200&ndash;400mg q24h','CrCl &gt;50: sem ajuste');
-    else if(c >= 10) h += rb('amber','Dose ajustada (HAB)','200mg q24h','CrCl 10&ndash;50: reducao para 200mg');
-    else             h += rb('red','Dose ajustada (HAB)','200mg q24h','CrCl &lt;10: mesma dose do CrCl 10-50');
-    if(c < 10) h += rb('purple','Em HD intermitente (HAB)','200mg q24h + dose adicional igual a prescrita apos HD','Suplementar a mesma dose apos cada sessao de HD');
-    h += info('Fluconazol tem excelente biodisponibilidade oral (&gt;90%): VO equivale ao EV. Sem atividade contra Candida krusei e C. glabrata (resistencia intrinseca/adquirida). Para candidemia: dose de ataque 800mg x1, depois 400mg q24h.');
-  }
+/* \u2500\u2500 SMX-TMP \u2500\u2500 */
+else if(atbSel === ‘smxtmp’){
+var pesoR = fv(‘peso’); if(!pesoR){ box.innerHTML = al(‘w’,‘Informe o peso do paciente para calcular a dose de SMX-TMP.’); return; }
+/* Dose em TMP: 20mg/kg/dia q6h = 5mg/kg q6h */
+/* HAB: CrCl 50-90: 20mg/kg/dia q6h; CrCl 30-50: 20mg/kg/dia q6h; CrCl 10-30: 10mg/kg/dia q6h; <10: 10mg/kg q24h; HD: apos HD sem extra */
+var dose_q6_full = fmt(20 * pesoR / 4 / 1, 0);  /* 5mg TMP/kg q6h */
+var dose_q6_half = fmt(10 * pesoR / 4 / 1, 0);  /* 2,5mg TMP/kg q6h */
+var dose_q24     = fmt(10 * pesoR, 0);            /* 10mg TMP/kg q24h */
+h += ‘<div class="nums-grid">’ + nb(fmt(pesoR,1)+‘kg’,‘peso’) + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + nb(‘TMP’,‘componente base’) + ‘</div>’;
+if(c > 30)       h += rb(‘green’,‘Dose ajustada (HAB)’,dose_q6_full+‘mg TMP q6h (20mg/kg/dia)’,‘CrCl >30: dose plena’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB) — CrCl 10–30’,dose_q6_half+‘mg TMP q6h (10mg/kg/dia)’,‘Reducao de 50% da dose diaria, manter q6h’);
+else             h += rb(‘red’,‘Dose ajustada (HAB) — CrCl <10’,dose_q24+‘mg TMP q24h (10mg/kg)’,‘Dose reducao e intervalo estendido para q24h’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,dose_q24+‘mg TMP — realizar apos HD, sem dose adicional’,‘Administrar apos sessao; NAO suplementar’);
+h += info(‘Dose em mg de TMP (componente ativo). 1 comprimido simples = 80mg TMP / 400mg SMX; 1 DS (duplo) = 160mg TMP / 800mg SMX. Para PCP: 5mg TMP/kg q6\u20138h (dose muito superior ao esquema usual).’);
+h += aviso(‘Hipercalemia: bloqueia canais ENaC tubulares (similar a amilorida) \u2014 risco especialmente em IR, idosos e uso de IECA/BRA/heparina. Monitorar K+ com 2\u20133 dias de uso. Aumento de creatinina em ate 10\u201315% e esperado (competicao tubular, sem queda real de TFG) \u2014 nao confundir com piora renal.’);
+}
 
-  box.innerHTML = h;
+/* \u2500\u2500 FLUCONAZOL \u2500\u2500 */
+else if(atbSel === ‘fluconazol’){
+var dose_alvo = 400; /* default 400mg */
+h += ‘<div class="nums-grid">’ + nb(fmt(c,0)+’ mL/min’,‘CrCl’) + nb(‘200–400mg’,‘faixa usual’) + nb(‘q24h’,‘intervalo base’) + ‘</div>’;
+if(c > 50)       h += rb(‘green’,‘Dose ajustada (HAB)’,‘200–400mg q24h’,‘CrCl >50: sem ajuste’);
+else if(c >= 10) h += rb(‘amber’,‘Dose ajustada (HAB)’,‘200mg q24h’,‘CrCl 10–50: reducao para 200mg’);
+else             h += rb(‘red’,‘Dose ajustada (HAB)’,‘200mg q24h’,‘CrCl <10: mesma dose do CrCl 10-50’);
+if(emHD) h += rb(‘purple’,‘Em HD intermitente (HAB)’,‘200mg q24h + dose adicional igual a prescrita apos HD’,‘Suplementar a mesma dose apos cada sessao de HD’);
+h += info(‘Biodisponibilidade oral >90%: VO equivale ao EV. Para candidemia em paciente estavel e sem uso previo de azolico: dose de ataque 800mg x1, depois 400mg q24h. Sem atividade contra C. krusei (resistencia intrinseca) e C. glabrata/C. auris (frequentemente resistentes). Preferir equinocandina em paciente grave, uso previo de azolico ou candidemia por especie nao-albicans.’);
+}
+
+box.innerHTML = h;
 }
 </script>
+
 </body>
 </html>
