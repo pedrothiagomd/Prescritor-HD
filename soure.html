@@ -52,7 +52,7 @@ color:var(–text2);cursor:pointer}
 /* SCROLL */
 .scroll{position:fixed;top:var(–top-h);bottom:var(–nav-h);left:0;right:0;
 overflow-y:auto;-webkit-overflow-scrolling:touch}
-.inner{padding:14px 14px 20px}
+.inner{padding:14px 14px 80px}
 
 /* BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;height:var(–nav-h);background:var(–card);
@@ -61,7 +61,7 @@ border-top:1px solid var(–border);display:flex;padding-bottom:env(safe-area-in
 gap:3px;cursor:pointer;border:none;background:none;color:var(–text3);
 font-family:inherit;padding:8px 4px;transition:color .15s;position:relative}
 .nb.active{color:var(–blue)}
-.nb .ni{font-size:1.25rem;line-height:1}
+.nb .ni{font-size:1.4rem;line-height:1;font-weight:300}
 .nb .nl{font-size:.62rem;font-weight:600}
 .nbadge{position:absolute;top:5px;right:calc(50% - 22px);background:var(–red);
 color:#fff;font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:99px}
@@ -76,7 +76,7 @@ text-transform:uppercase;letter-spacing:.08em;margin:18px 0 9px}
 
 /* STAT CARDS */
 .srow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.sc{background:var(–card);border:1px solid var(–border);border-radius:var(–r);padding:13px}
+.sc{background:var(–card);border:1px solid var(–border);border-radius:var(–r);padding:14px 13px}
 .sc.full{grid-column:1/-1}
 .sc.g{border-color:var(–green);background:var(–green-bg)}
 .sc.r{border-color:var(–red);background:var(–red-bg)}
@@ -93,8 +93,8 @@ border-radius:var(–r);overflow:hidden;margin-bottom:10px}
 .li{display:flex;align-items:center;gap:11px;padding:12px 13px;
 border-bottom:1px solid var(–border)}
 .li:last-child{border-bottom:none}
-.li-icon{width:34px;height:34px;border-radius:var(–r-sm);flex-shrink:0;
-display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.li-icon{width:36px;height:36px;border-radius:var(–r-sm);flex-shrink:0;
+display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;overflow:hidden;letter-spacing:-.5px}
 .li-body{flex:1;min-width:0}
 .li-title{font-size:.88rem;font-weight:600;white-space:nowrap;
 overflow:hidden;text-overflow:ellipsis}
@@ -154,7 +154,7 @@ font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer}
 .ri{display:flex;align-items:center;gap:11px;padding:12px 13px;
 border-bottom:1px solid var(–border)}
 .ri:last-child{border-bottom:none}
-.ri-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ri-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .ri-label{font-size:.88rem;font-weight:600;flex:1}
 .ri-wrap{display:flex;align-items:center;gap:4px}
 .ri-wrap span{font-size:.78rem;color:var(–text3);font-weight:500}
@@ -393,20 +393,20 @@ animation:tin .2s ease}
 
 <nav class="bnav">
   <button class="nb active" id="nav-resumo" onclick="go('resumo')">
-    <span class="ni">📊</span><span class="nl">Resumo</span>
+    <span class="ni">▦</span><span class="nl">Resumo</span>
   </button>
   <button class="nb" id="nav-recebimentos" onclick="go('recebimentos')">
-    <span class="ni">💰</span><span class="nl">Recebidos</span>
+    <span class="ni">↑</span><span class="nl">Recebidos</span>
   </button>
   <button class="nb" id="nav-boletos" onclick="go('boletos')">
-    <span class="ni">📄</span><span class="nl">Boletos</span>
+    <span class="ni">≡</span><span class="nl">Boletos</span>
     <span class="nbadge" id="bpend" style="display:none">0</span>
   </button>
   <button class="nb" id="nav-custos" onclick="go('custos')">
-    <span class="ni">🏢</span><span class="nl">Fixos</span>
+    <span class="ni">◈</span><span class="nl">Fixos</span>
   </button>
   <button class="nb" id="nav-funcionarios" onclick="go('funcionarios')">
-    <span class="ni">👥</span><span class="nl">Equipe</span>
+    <span class="ni">◉</span><span class="nl">Equipe</span>
   </button>
 </nav>
 
@@ -511,11 +511,11 @@ animation:tin .2s ease}
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
              'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const FORMAS=[
-  {k:'cartao_credito',l:'Cartão Crédito',ic:'💳',c:'#4f8ef7'},
-  {k:'cartao_debito', l:'Cartão Débito', ic:'💳',c:'#818cf8'},
-  {k:'pix',          l:'PIX',           ic:'📱',c:'#2dd4bf'},
-  {k:'dinheiro',     l:'Dinheiro',      ic:'💵',c:'#22c55e'},
-  {k:'crediario',    l:'Crediário',     ic:'📋',c:'#a78bfa'},
+  {k:'cartao_credito',l:'Cartão Crédito',ic:'CC',c:'#4f8ef7'},
+  {k:'cartao_debito', l:'Cartão Débito', ic:'CD',c:'#818cf8'},
+  {k:'pix',          l:'PIX',           ic:'PIX',c:'#2dd4bf'},
+  {k:'dinheiro',     l:'Dinheiro',      ic:'R$',c:'#22c55e'},
+  {k:'crediario',    l:'Crediário',     ic:'CR',c:'#a78bfa'},
 ];
 const PAGE_TITLES={resumo:'Resumo',recebimentos:'Recebimentos',
   boletos:'Boletos',custos:'Custos Fixos',funcionarios:'Funcionários'};
@@ -702,7 +702,7 @@ async function rResumo(){
       </div>
       <div class="li-r"><div class="li-val">${brl(b.v)}</div></div>
     </div>`).join(''):
-    '<div class="empty"><div class="ei">📭</div><p>Nenhum boleto lançado</p></div>';
+    '<div class="empty" style="padding:30px 20px;text-align:center;color:var(--text3)"><div style="font-size:1.8rem;margin-bottom:6px">📭</div><p style="font-size:.83rem">Nenhum boleto lançado</p></div>';
 }
 
 // RECEBIMENTOS
