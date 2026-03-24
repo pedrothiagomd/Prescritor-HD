@@ -206,7 +206,7 @@ padding:5px;font-size:.95rem;flex-shrink:0}
 .login-screen{position:fixed;inset:0;background:var(–bg);z-index:999;
 display:flex;flex-direction:column;align-items:center;justify-content:center;
 padding:32px 24px}
-.login-screen.hidden{display:none}
+
 .login-logo{font-size:2.4rem;margin-bottom:6px}
 .login-title{font-size:1.5rem;font-weight:700;margin-bottom:4px}
 .login-sub{font-size:.85rem;color:var(–text2);margin-bottom:36px}
@@ -288,20 +288,21 @@ animation:tin .2s ease}
 
 <!-- LOGIN SCREEN -->
 
-<div class="login-screen" id="login-screen">
-  <div class="login-logo">💼</div>
-  <div class="login-title">FinControl 2026</div>
-  <div class="login-sub">Gestão Financeira</div>
-  <div class="login-box">
-    <div class="login-user-btns" id="user-btns"></div>
-    <div class="login-inp-wrap">
-      <input class="login-inp" id="pw-inp" type="password" placeholder="Senha"
-        onkeydown="if(event.key==='Enter')doLogin()"/>
-      <button class="toggle-pw" onclick="togglePw()">👁</button>
+<div id="login-screen" style="position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#0f1117;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="font-size:2.4rem;margin-bottom:8px">💼</div>
+  <div style="font-size:1.5rem;font-weight:700;color:#f0f2f8;margin-bottom:4px">FinControl 2026</div>
+  <div style="font-size:.85rem;color:#8b90a8;margin-bottom:28px">Gestão Financeira</div>
+  <div style="width:100%;max-width:360px">
+    <div id="user-btns" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div style="position:relative;margin-bottom:12px">
+      <input id="pw-inp" type="password" placeholder="Senha"
+        onkeydown="if(event.key==='Enter')doLogin()"
+        style="width:100%;background:#22253a;border:1.5px solid #2a2d3e;border-radius:10px;padding:13px 44px 13px 14px;font-size:.95rem;color:#f0f2f8;outline:none;-webkit-appearance:none;appearance:none;box-sizing:border-box;font-family:inherit"/>
+      <button onclick="togglePw()" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8b90a8;cursor:pointer;font-size:1rem;padding:2px">👁</button>
     </div>
-    <div class="login-err" id="login-err"></div>
-    <button class="login-btn" onclick="doLogin()">Entrar</button>
-    <div class="login-footer">Os dados são salvos localmente neste dispositivo</div>
+    <div id="login-err" style="font-size:.82rem;color:#f43f5e;text-align:center;min-height:18px;margin-bottom:8px"></div>
+    <button onclick="doLogin()" style="width:100%;padding:14px;border-radius:10px;border:none;background:#4f8ef7;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;-webkit-appearance:none;appearance:none;font-family:inherit">Entrar</button>
+    <div style="font-size:.72rem;color:#4a4f68;text-align:center;margin-top:16px">Os dados são salvos na nuvem</div>
   </div>
 </div>
 
@@ -935,11 +936,18 @@ async function setPassword(userId, newPw) {
 function renderUserBtns() {
   const users = getUsers();
   document.getElementById('user-btns').innerHTML = users.map(u => `
-    <button class="user-btn${u.id===selectedUserId?' selected':''}" onclick="selectUser('${u.id}')">
-      <div class="user-av" style="background:${u.color}22;color:${u.color}">${u.initials}</div>
-      <div class="user-info">
-        <div class="user-name">${u.name}</div>
-        <div class="user-role">${u.role==='admin'?'Administrador':'Visualizador'}</div>
+    <button onclick="selectUser('${u.id}')"
+      style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+        background:${u.id===selectedUserId?u.color+'18':'#1a1d27'};
+        border:1.5px solid ${u.id===selectedUserId?u.color:'#2a2d3e'};
+        border-radius:14px;cursor:pointer;width:100%;text-align:left;
+        -webkit-appearance:none;appearance:none;box-sizing:border-box;font-family:inherit">
+      <div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;
+        background:${u.color}22;color:${u.color};display:flex;align-items:center;
+        justify-content:center;font-weight:700;font-size:.9rem">${u.initials}</div>
+      <div>
+        <div style="font-size:.9rem;font-weight:600;color:#f0f2f8">${u.name}</div>
+        <div style="font-size:.72rem;color:#8b90a8;margin-top:1px">${u.role==='admin'?'Administrador':'Visualizador'}</div>
       </div>
     </button>`).join('');
 }
@@ -973,7 +981,7 @@ async function doLogin() {
   curUser = users.find(u => u.id === selectedUserId);
   localStorage.setItem('fc26_session', selectedUserId);
 
-  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('login-screen').style.display='none';
   document.getElementById('pw-inp').value = '';
   err.textContent = '';
 
@@ -1053,7 +1061,7 @@ function logout() {
   curUser = null;
   localStorage.removeItem('fc26_session');
   cs('s-settings');
-  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-screen').style.display='flex';
   selectedUserId = 'admin';
   renderUserBtns();
 }
@@ -1083,7 +1091,7 @@ document.getElementById('fab').addEventListener('click', function(e) {
 
 // INIT
 renderUserBtns();
-document.getElementById('login-screen').classList.remove('hidden');
+document.getElementById('login-screen').style.display='flex';
 
 // Make window functions available from inline onclick handlers
 window.selectUser=selectUser;window.togglePw=togglePw;window.doLogin=doLogin;
