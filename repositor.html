@@ -153,7 +153,8 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
           <option value="cvc25">EV CVC &mdash; KCl 19,1% (25 mEq/amp)</option>
           <option value="cvc10">EV CVC &mdash; KCl 10% (13,4 mEq/amp)</option>
           <option value="pvp20">EV CVC &mdash; Bolsa pronta 20 mEq/100mL</option>
-          <option value="pvpdil">EV PVP &mdash; KCl 10% diluido em SF (max 40 mEq/L)</option>
+          <option value="pvpdil">EV PVP &mdash; KCl 10% em SF &mdash; Bolsas padronizadas</option>
+          <option value="pvpbic">EV PVP &mdash; KCl 10% em SF &mdash; BIC (infusao continua)</option>
           <option value="vox">VO &mdash; Ionclor xarope 6% (8 mEq/10mL)</option>
           <option value="vos">VO &mdash; Slow-K (8 mEq/dragea)</option>
         </select>
@@ -564,6 +565,44 @@ function calcK(){
       'G = 3 amp + 1000mL (40,2 mEq | 249 mL/h | 4,0h)'
     );
     h += al('w', 'PVP: monitorar sinais de flebite e dor no trajeto venoso. Dose &gt; 80 mEq: considerar CVC.');
+  }
+  else if(via === 'pvpbic'){
+    /*
+     * BIC PVP com KCl 10%:
+     * Limite concentracao: 40 mEq/L
+     * Limite taxa: 10 mEq/h
+     * Volume BIC: calcular volume SF para diluir dose inteira em conc <= 40 mEq/L
+     * Arredondar volume para cima em multiplos de 50mL (pratico para preparo)
+     * Taxa = 10 mEq/h = fixo (maximo seguro PVP)
+     * Tempo = dose / 10 horas
+     * mL/h = volume / tempo
+     */
+    var volMinBIC = Math.ceil(dose / 40 * 1000 / 50) * 50; /* arredondar para cima em 50mL */
+    volMinBIC = Math.max(volMinBIC, 100);
+    var concBIC  = Math.round(dose / volMinBIC * 1000 * 10) / 10;
+    var nAmpBIC  = Math.ceil(dose / 13.4);
+    var meqBIC   = Math.round(nAmpBIC * 13.4 * 10) / 10;
+    /* recalcular volume para a quantidade real de ampolas */
+    var volBIC   = Math.ceil(meqBIC / 40 * 1000 / 50) * 50;
+    var concReal = Math.round(meqBIC / volBIC * 1000 * 10) / 10;
+    var taxaMlh  = Math.round(volBIC / (meqBIC / 10) * 10) / 10; /* mL/h a 10 mEq/h */
+    var tempoBIC = Math.round(meqBIC / 10 * 10) / 10; /* horas */
+
+    /* Volume de SF a acrescentar (descontar volume das ampolas) */
+    var volAmpBIC = nAmpBIC * 10; /* cada amp KCl 10% = 10mL */
+    var volSFbic  = volBIC - volAmpBIC;
+
+    h += rb('green',
+      'Prescricao &mdash; EV PVP &mdash; KCl 10% BIC',
+      nAmpBIC + ' amp KCl 10% + SF ' + volSFbic + 'mL &rarr; ' + taxaMlh.toFixed(0) + ' mL/h',
+      '<strong>Preparo:</strong> ' + nAmpBIC + ' amp KCl 10% (' + meqBIC.toFixed(1) + ' mEq) + SF 0,9% ' + volSFbic + 'mL = ' + volBIC + 'mL total<br>' +
+      'Concentracao final: <strong>' + concReal.toFixed(1) + ' mEq/L</strong> &mdash; limite PVP: 40 mEq/L<br>' +
+      'Taxa: <strong>' + taxaMlh.toFixed(0) + ' mL/h</strong> (10 mEq/h &mdash; maximo PVP)<br>' +
+      'Duracao: <strong>' + tempoBIC.toFixed(1) + 'h</strong><br>' +
+      'Checar K+ ao final. Infundir em veia calibrosa (antecubital) via bomba de infusao.'
+    );
+    h += al('i', 'BIC PVP: volume calculado para manter concentracao &le;40 mEq/L. Taxa fixada em 10 mEq/h (maximo seguro para veia periferica). ECG continuo se K+ &lt;2,5 mEq/L.');
+    h += al('w', 'PVP: monitorar sinais de flebite. Se dor ou sinais de extravasamento: suspender e trocar acesso. Dose &gt;80 mEq em PVP: considerar CVC.');
   }
   else {
     var meqMap = {vox:8, vos:8};
