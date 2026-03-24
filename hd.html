@@ -588,8 +588,8 @@ function buildPainelIntegrado(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
       var doseStr='Informe peso seco para calcular dose.';
       if(ps){var lo=(ps*0.04).toFixed(1),hi=(ps*0.1).toFixed(1);doseStr='Iniciar '+lo+' mcg/sessão 3x/sem.';}
       items.push({pill:'Paricalcitol',cls:'pp-amber',txt:'PTH '+pthStr+' (> 300) — indicado (equivalente ao calcitriol/cinacalcete por KDIGO 4.2.4). '+doseStr+' ⚠ Ca '+ca.toFixed(1)+' hipocalcêmico — monitorar Ca SEMANALMENTE. Garantir reposição Ca.',med:'paricalcitol'});
-      items.push({alert:'⚠ Paricalcitol + Ca baixo: carbonato reposição obrigatório antes de escalar dose. Se Ca cair &lt; 7,5 → suspender paricalcitol temporariamente.'});
-      items.push({pill:'Cinacalcete',cls:'pp-green',txt:'Ca &lt; 8,4 — CONTRAINDICADO. Reavaliar após Ca normalizar.'});
+      items.push({alert:'⚠ Paricalcitol + Ca baixo: repor Ca antes de escalar dose. Se Ca &lt; 7,5 → suspender paricalcitol temporariamente.'});
+      items.push({pill:'Cinacalcete',cls:'pp-slate',txt:'Ca &lt; 8,4 — contraindicado. Reavaliar após normalizar Ca.'});
       items.push({pill:'Paricalcitol × Calcitriol',cls:'pp-slate',txt:'Não usar simultaneamente — mesma classe, risco de hipercalcemia aditiva sem benefício.'});
     } else {
       // Ca normal (8,4–9,4)
@@ -601,7 +601,7 @@ function buildPainelIntegrado(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
       var cinaTxt = pth>=600
         ? '2ª linha — associar se PTH não reduzir ≥ 30% em 8–12 sem. Refratário 6 meses → avaliar PTX.'
         : '2ª linha — considerar se PTH não reduzir ≥ 30% em 8–12 sem de paricalcitol.';
-      var pariCls = pth>=600?'pp-red':'pp-amber';
+      var pariCls = pth>=600?'pp-green':'pp-green';
       items.push({pill:'Paricalcitol',cls:pariCls,txt:'PTH '+pthStr+(pth>=600?' (> 600)':' (300–600)')+' — indicado. Dose: '+doseStr2+' Paricalcitol, calcitriol e cinacalcete são equivalentes por KDIGO 2017 (4.2.4). Monitorar Ca mensalmente.',med:'paricalcitol'});
       items.push({pill:'Cinacalcete',cls:'pp-slate',txt:cinaTxt});
       items.push({pill:'Paricalcitol × Calcitriol',cls:'pp-slate',txt:'Não usar simultaneamente — mesma classe, risco de hipercalcemia aditiva sem benefício.'});
