@@ -753,56 +753,88 @@ function calcMg(){
   var via  = sv('mgv');
   var renal= sv('mgr');
 
-  if(!peso || !mgA){ g('r-mg').innerHTML=''; return; }
+  if(!mgA){ g('r-mg').innerHTML=''; return; }
 
-  var deficit  = Math.max(0, 2.0 - mgA);
-  var baseG    = deficit / 0.2 * 2;
-  var maxG     = grav === 'g' ? 8 : grav === 'm' ? 4 : 2;
-  var doseG    = Math.min(baseG, maxG);
-  var dose     = Math.ceil(doseG) || 1;
-  var mEqTotal = dose * 8.1;
-  var tempo    = grav === 'g' ? dose/2 : grav === 'm' ? dose : dose*1.5;
+  /* Verificar se esta dentro do normal \u2014 nao repor */
+  if(mgA >= 1.8){
+    g('r-mg').innerHTML = dblock([dr('Mg2+ atual', mgA + ' mg/dL (normal &ge;1,8 mg/dL)')]) +
+      al('s', 'Mg2+ dentro do intervalo de refer&ecirc;ncia (&ge;1,8 mg/dL) &mdash; reposicao n&atilde;o indicada.');
+    return;
+  }
+
+  /*
+   * Doses por gravidade (UpToDate / consenso):
+   *   Leve (1,4-1,8): 1-2g MgSO4 EV ou VO
+   *   Moderada (1,0-1,4): 2-4g MgSO4 EV
+   *   Grave (<1,0) / sintomatico: 4-8g MgSO4 EV
+   * Velocidade maxima EV: 1g/30min = 2g/h (seguro via PVP diluido ou CVC)
+   *   Grave sintomatico: pode acelerar para 4-8g em 4h = 1-2g/h
+   * Ajuste renal: reduzir 25-50% se TFG <30
+   */
+  var maxG    = grav === 'g' ? 8 : grav === 'm' ? 4 : 2;
+  var baseG   = grav === 'g' ? 4 : grav === 'm' ? 2 : 1;
+  var dose    = baseG; /* dose inicial padrao por gravidade */
+  var mEqTotal= dose * 8.1;
+
+  /* Ajuste renal */
+  if(renal === 'g')  dose = Math.ceil(dose * 0.5);
+  else if(renal === 'a') dose = Math.ceil(dose * 0.75);
+
+  /* Tempo de infusao: a 1g/30min = 2g/h */
+  var taxaGh  = 2.0; /* g/h maximo seguro */
+  var tempoH  = dose / taxaGh; /* horas a taxa maxima */
+  /* Grave sintomatico: pode ser mais rapido (ate 4g em 20min em emergencia real) */
+  var tempoMin = grav === 'g' ? dose / 2 : tempoH; /* grave: ate 2g/h ainda ou bolus */
 
   var h = dblock([
-    dr('Mg2+ atual', mgA + ' mg/dL (normal &ge; 1,8 mg/dL)'),
-    dr('1g MgSO4 eleva soro em', '~+0,2 mg/dL'),
-    dr('Dose calculada', dose + 'g MgSO4 = ' + fmt(mEqTotal,0) + ' mEq')
+    dr('Mg2+ atual', mgA + ' mg/dL (normal &ge;1,8 mg/dL)'),
+    dr('Gravidade', grav==='g' ? 'Grave (<1,0) / sintom&aacute;tico' : grav==='m' ? 'Moderada (1,0&ndash;1,4)' : 'Leve (1,4&ndash;1,8)'),
+    dr('1g MgSO4 eleva Mg em', '~0,2 mg/dL'),
+    dr('Dose', dose + 'g MgSO4 = ' + fmt(dose*8.1,0) + ' mEq')
   ]);
 
   if(via === 'ev50'){
-    var n = Math.ceil(dose / 5);
+    var nAmp = Math.ceil(dose / 5);
+    var volTot = Math.max(100, nAmp * 10 + 90); /* diluir para volume minimo 100mL */
+    var mlh  = Math.round(volTot / tempoH);
     h += rb('green',
-      'Prescricao &mdash; MgSO4 50% EV (40,5 mEq/amp)',
-      n + ' amp (' + (n*5) + 'g = ' + fmt(n*40.5,0) + ' mEq)',
-      n + ' amp de 10mL + SF 0,9% q.s.p. 100&ndash;250mL<br>' +
-      'Velocidade maxima: <strong>1g/30min (2g/h)</strong> &rarr; ' + fmt(dose/tempo,1) + 'g/h por ' + fmt(tempo,1) + 'h<br>' +
-      'Aguardar 8&ndash;12h para nova dosagem (redistribuicao tecidual)'
+      'Prescricao &mdash; MgSO4 50% EV (5g/amp)',
+      nAmp + ' amp + SF 0,9% q.s.p. ' + volTot + 'mL &rarr; ' + mlh + ' mL/h por ' + fmt(tempoH,1) + 'h',
+      nAmp + ' amp MgSO4 50% (10mL/amp) + SF 0,9% q.s.p. ' + volTot + 'mL<br>' +
+      'Taxa: <strong>' + mlh + ' mL/h</strong> (= ' + taxaGh.toFixed(1) + ' g/h &mdash; limite m&aacute;ximo: 1g/30min)<br>' +
+      'Dura\u00e7\u00e3o: <strong>' + fmt(tempoH,1) + 'h</strong><br>' +
+      'Aguardar 8&ndash;12h para nova dosagem (redistribui\u00e7\u00e3o tecidual)'
     );
-    h += al('d', 'MgSO4 50% NUNCA infundir puro &mdash; sempre diluir. Risco de necrose e parada cardiaca.');
+    h += al('d', 'MgSO4 50% NUNCA infundir puro &mdash; sempre diluir. Risco de necrose e parada card\u00edaca.');
   }
   else if(via === 'ev10'){
+    var nAmp10 = dose; /* 1 amp 10% = 1g */
+    var vol10  = Math.max(100, nAmp10 * 10 + 90);
+    var mlh10  = Math.round(vol10 / tempoH);
     h += rb('green',
-      'Prescricao &mdash; MgSO4 10% EV (8,1 mEq/amp)',
-      dose + ' amp (' + dose + 'g = ' + fmt(dose*8.1,0) + ' mEq)',
-      dose + ' amp de 10mL + SF 0,9% q.s.p. 100mL<br>' +
-      'Velocidade maxima: <strong>1g/30min</strong> &rarr; ' + fmt(dose/tempo,1) + 'g/h por ' + fmt(tempo,1) + 'h<br>' +
+      'Prescricao &mdash; MgSO4 10% EV (1g/amp)',
+      nAmp10 + ' amp + SF 0,9% q.s.p. ' + vol10 + 'mL &rarr; ' + mlh10 + ' mL/h por ' + fmt(tempoH,1) + 'h',
+      nAmp10 + ' amp MgSO4 10% (10mL/amp) + SF 0,9% q.s.p. ' + vol10 + 'mL<br>' +
+      'Taxa: <strong>' + mlh10 + ' mL/h</strong> (= ' + taxaGh.toFixed(1) + ' g/h &mdash; limite: 1g/30min)<br>' +
+      'Dura\u00e7\u00e3o: <strong>' + fmt(tempoH,1) + 'h</strong><br>' +
       'Aguardar 8&ndash;12h para nova dosagem'
     );
   }
   else {
     h += rb('purple',
       'Prescricao &mdash; Via Oral',
-      (grav === 'l' ? '400&ndash;800' : '800&ndash;1200') + ' mg Mg elem/dia',
-      'Oxido Mg 400mg (19,8 mEq/cp) ou Citrato Mg sache (24,7 mEq)<br>' +
+      (grav === 'l' ? '400&ndash;800' : '800&ndash;1200') + ' mg Mg elementar/dia',
+      '\u00d3xido Mg 400mg (19,8 mEq/cp) ou Citrato Mg sach\u00ea (24,7 mEq/sach\u00ea)<br>' +
       'Dividir em 2&ndash;3x/dia | Tomar com alimento<br>' +
-      'Citrato: melhor tolerancia GI que oxido. Biodisponibilidade VO: 30&ndash;40%.'
+      'Citrato: melhor toler\u00e2ncia GI que \u00f3xido. Biodisponibilidade VO: 30&ndash;40%.<br>' +
+      'Prefer\u00edvel a EV em leve assintom\u00e1tico com TGI \u00edntegro.'
     );
   }
 
-  if(renal === 'g'){ h += al('d', 'IR grave (TFG &lt;30): reduzir dose em 25&ndash;50%. Monitorar reflexo patelar, FR e diurese. Risco de intoxicacao por hipermagnesemia.'); }
-  if(grav === 'g'){ h += al('d', 'Grave/sintomatico (torsades, convulsao, tetania): 4&ndash;8g EV em 4h. Antidoto de intoxicacao: Gluconato Ca 1g IV.'); }
-  h += al('i', 'Hipocalemia refrataria: corrigir Mg antes/junto &mdash; hipomagnesemia perpetua perda renal de K+.');
-  h += al('w', 'Hipocalcemia concomitante: repor Ca2+ <strong>antes</strong> de iniciar MgSO4 IV &mdash; o ion sulfato complexa Ca2+ ionizado e pode agravar agudamente a hipocalcemia.');
+  if(renal !== 'n'){ h += al('d', 'IR (TFG &lt;' + (renal==='g'?'30':'60') + '): dose reduzida em ' + (renal==='g'?'50':'25') + '%. Monitorar reflexo patelar, frequ\u00eancia respirat\u00f3ria e diurese. Risco de hipermagnesemia.'); }
+  if(grav === 'g'){ h += al('d', 'Grave/sintom\u00e1tico (torsades de pointes, convuls\u00e3o, tetania): 4&ndash;8g EV em 4&ndash;8h. Em torsades imediato: 2g IV em 10&ndash;15min. Ant\u00eddo\u00adto: Gluconato Ca 1g IV.'); }
+  h += al('i', 'Hipocalemia refrat\u00e1ria: corrigir Mg antes/junto &mdash; hipomagnesemia perpetua perda renal de K+.');
+  h += al('w', 'Hipocalcemia concomitante: repor Ca2+ <strong>antes</strong> de iniciar MgSO4 IV &mdash; o \u00ednon sulfato complexa Ca2+ ionizado e pode agravar a hipocalcemia.');
 
   show('r-mg', h);
 }
@@ -820,17 +852,42 @@ function calcCa(){
   if(!caT){ g('r-ca').innerHTML=''; return; }
 
   var caCorr = caT + 0.8 * (4 - alb);
-  var deficit= Math.max(0, 9.0 - caCorr);
-  var isVO   = (via === 'carb' || via === 'citr');
+
+  /* Se Ca ionizado disponivel: usar como referencia principal */
+  /* Ca ionizado normal: 1,15-1,35 mmol/L | alvo de reposicao: 1,15 mmol/L */
+  var nAmp = 1;
+  var usandoIon = (caIon !== null && caIon !== undefined);
+  var deficit, defLabel, refLabel;
+
+  if(usandoIon){
+    /* Deficit em mmol/L abaixo do alvo de 1,15 */
+    var defIon = Math.max(0, 1.15 - caIon);
+    /* Dose: 0,5-1g gluconato Ca por 0,1 mmol/L de deficit */
+    nAmp = Math.max(1, Math.round(defIon / 0.1));
+    deficit = defIon;
+    defLabel = fmt(defIon,2) + ' mmol/L (Ca ionizado < 1,15)';
+    refLabel = 'Ca2+ ionizado (referencia principal)';
+  } else {
+    /* Sem ionizado: usar Ca corrigido pela albumina */
+    var defCorr = Math.max(0, 9.0 - caCorr);
+    nAmp = Math.max(1, Math.round(defCorr / 0.5));
+    deficit = defCorr;
+    defLabel = fmt(defCorr,1) + ' mg/dL';
+    refLabel = 'Ca2+ corrigido pela albumina';
+  }
+
   var fMeq   = via === 'clor' ? 13.6 : 4.65;
-  var nAmp   = Math.max(1, Math.round(deficit / 0.5));
+  var isVO   = (via === 'carb' || via === 'citr');
 
   var h = dblock([
     dr('Ca2+ total medido', caT + ' mg/dL'),
     dr('Albumina', alb + ' g/dL'),
-    dr('Ca2+ corrigido [Ca + 0,8 x (4 - ' + alb + ')]', '<strong>' + fmt(caCorr,1) + ' mg/dL</strong>'),
-    caIon ? dr('Ca2+ ionizado (usar para decisao)', caIon + ' mmol/L (ref: 1,15&ndash;1,35)') : '',
-    dr('Deficit estimado', fmt(deficit,1) + ' mg/dL')
+    dr('Ca2+ corrigido [Ca + 0,8 x (4 - ' + alb + ')]', fmt(caCorr,1) + ' mg/dL'),
+    usandoIon
+      ? dr('Ca2+ ionizado <strong>(referencia principal)</strong>', caIon + ' mmol/L &mdash; ref: 1,15&ndash;1,35 mmol/L')
+      : dr('Ca2+ ionizado', 'n&atilde;o informado &mdash; usando Ca corrigido como estimativa'),
+    dr('Base do calculo', refLabel),
+    dr('Deficit estimado', defLabel)
   ]);
 
   if(!isVO){
