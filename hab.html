@@ -549,6 +549,7 @@ font-family:“DM Mono”,monospace;font-size:12px;color:#166534;margin-top:2px;
         <span class="chip" data-atb="metronidazol" onclick="togAtb(this)">Metronidazol 500mg</span>
         <span class="chip" data-atb="clindamicina" onclick="togAtb(this)">Clindamicina 600mg</span>
         <span class="chip" data-atb="azitromicina" onclick="togAtb(this)">Azitromicina 500mg</span>
+        <span class="chip" data-atb="anidulafungina" onclick="togAtb(this)">Anidulafungina 200mg</span>
         <span class="chip" data-atb="fluconazol" onclick="togAtb(this)">Fluconazol 400mg</span>
         <span class="chip" data-atb="smx-tmp" onclick="togAtb(this)">SMX-TMP 960mg</span>
         <span class="chip" data-atb="polimixina-b" onclick="togAtb(this)">Polimixina B</span>
@@ -1226,11 +1227,11 @@ const ATB_DATA={
 
   // ── GLICOPEPTÍDEOS ─────────────────────────────────────────
   'vancomicina': {
-    nome:'Vancomicina EV', freq:'1g 12/12h — monitorar nível (vancocinemia)',
+    nome:'Vancomicina EV', freq:'1g 12/12h, monitorar nível (vancocinemia)',
     ajuste:{
       50: '15mg/kg 48/48h (CrCl 10–50)',
       10: '7,5mg/kg 48/48h (CrCl <10)',
-      0:  'HD: diária 15mg/kg/2d | cada 2d: 25mg/kg | cada 3d: 35mg/kg — preferir monitorar vancocinemia'
+      0:  'HD: diária 15mg/kg/2d | cada 2d: 25mg/kg | cada 3d: 35mg/kg, preferir monitorar vancocinemia'
     }
   },
   'teicoplanina': {
@@ -1242,7 +1243,7 @@ const ATB_DATA={
 
   // ── AMINOGLICOSÍDEOS ───────────────────────────────────────
   'amicacina': {
-    nome:'Amicacina EV', freq:'15mg/kg 24/24h — monitorar nível',
+    nome:'Amicacina EV', freq:'15mg/kg 24/24h, monitorar nível',
     ajuste:{
       50: '7,5mg/kg 24/24h (CrCl 30–50)',
       30: '7,5mg/kg 48/48h (CrCl 10–30)',
@@ -1251,7 +1252,7 @@ const ATB_DATA={
     }
   },
   'gentamicina': {
-    nome:'Gentamicina EV', freq:'2mg/kg 8/8h — monitorar nível',
+    nome:'Gentamicina EV', freq:'2mg/kg 8/8h, monitorar nível',
     ajuste:{
       50: '2mg/kg 12/12h ou 24/24h (CrCl <90)',
       10: '2mg/kg 48/48h (CrCl <10)',
@@ -1263,7 +1264,7 @@ const ATB_DATA={
   'ciprofloxacino': {
     nome:'Ciprofloxacino 400mg EV', freq:'12/12h',
     ajuste:{
-      10: '400mg 24/24h — ajustar para 200mg 12/12h (CrCl <10)',
+      10: '400mg 24/24h, ajustar para 200mg 12/12h (CrCl <10)',
       0:  'HD: sem dose adicional'
     }
   },
@@ -1271,7 +1272,7 @@ const ATB_DATA={
     nome:'Levofloxacino 750mg EV/VO', freq:'24/24h',
     ajuste:{
       50: '750mg 48/48h (CrCl 10–50)',
-      10: '500mg 48/48h (CrCl <10) — ataque 750mg',
+      10: '500mg 48/48h (CrCl <10), ataque 750mg',
       0:  'HD: ataque 750mg; depois 500mg/48h sem dose adicional'
     }
   },
@@ -1287,12 +1288,16 @@ const ATB_DATA={
   'clindamicina': {
     nome:'Clindamicina 600mg EV', freq:'8/8h',
     ajuste:{
-      10: '600mg 12/12h (CrCl <10) — sem dose adicional pós-HD'
+      10: '600mg 12/12h (CrCl <10), sem dose adicional pós-HD'
     }
   },
   'azitromicina': {
     nome:'Azitromicina 500mg VO/EV', freq:'24/24h',
     ajuste:{}  // sem ajuste renal
+  },
+  'anidulafungina': {
+    nome:'Anidulafungina EV', freq:'200mg 24/24h (ataque 200mg)',
+    ajuste:{}
   },
   'fluconazol': {
     nome:'Fluconazol EV/VO', freq:'200–400mg 24/24h',
@@ -1313,7 +1318,7 @@ const ATB_DATA={
   },
   'polimixina-b': {
     nome:'Polimixina B EV', freq:'Ataque 25.000UI/kg/dia 12/12h; Manutenção 15.000UI/kg/dia 12/12h',
-    ajuste:{}  // sem ajuste renal — guia HAB
+    ajuste:{}  // sem ajuste renal, guia HAB
   },
   'linezolida': {
     nome:'Linezolida 600mg EV/VO', freq:'12/12h',
@@ -1492,7 +1497,7 @@ window.updResumo=function(){
         for(const t of ts){if(tfg<t){adj=d.ajuste[t];break;}}
         if(adj){
           // Strip CrCl references and "monitorar" notes from adj
-          let adjClean=adj.replace(/\s*\(CrCl[^)]*\)/g,'').replace(/\s*—\s*monitorar[^.;]*/gi,'').trim();
+          let adjClean=adj.replace(/\s*\(CrCl[^)]*\)/g,'').replace(/[,\s]*monitorar[^,;\n]*/gi,'').replace(/,\s*$/, '').trim();
           linha+='\n    Ajuste: '+adjClean;
         }
       }
@@ -1568,7 +1573,7 @@ window.updResumo=function(){
     lines.push('');lines.push('Drogas nefrológicas:');
     selRx.forEach(k=>{
       const dose=document.getElementById('rx-'+k)?.value.trim();
-      lines.push('  - '+RX_NOME[k]+(dose?' - '+dose:''));
+      lines.push('  - '+RX_NOME[k]+(dose?' '+dose:''));
     });
   }
 
