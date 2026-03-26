@@ -200,6 +200,13 @@ mark{background:#fef9c3;color:#854d0e;border-radius:2px;padding:0 1px}
 .disp-other{font-size:12.5px;padding:5px 9px;border:1px solid #ddd;border-radius:6px;
 background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;transition:.12s;margin-top:6px}
 .disp-other:focus{border-color:#888;background:#fff}
+.calc-box{background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:7px 11px;
+font-family:“DM Mono”,monospace;font-size:12px;color:#166534;margin-top:2px;display:none}
+.calc-box.show{display:block}
+.calc-box.warn{background:#fffbeb;border-color:#fcd34d;color:#92400e}
+.calc-box.alert{background:#fef2f2;border-color:#fca5a5;color:#991b1b}
+.fsec-ttl.ur{color:#0891b2;border-color:#a5f3fc}
+.fsec-ttl.cult{color:#65a30d;border-color:#bef264}
 
 /* ATB alert box */
 .atb-alert{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:9px 12px;margin-top:8px;font-size:12px;color:#78350f;line-height:1.6;display:none}
@@ -364,14 +371,17 @@ background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;tr
   <div class="fsec">
     <div class="fsec-ttl e">Escórias Nitrogenadas</div>
     <div class="fg">
-      <div class="f"><label>Uréia (mg/dL)</label><input id="f-ur" placeholder="—"/></div>
-      <div class="f"><label>Creatinina (mg/dL)</label><input id="f-cr" placeholder="—" oninput="calcTFG()"/></div>
+      <div class="f"><label>Uréia (mg/dL)</label><input id="f-ur" placeholder="—" oninput="calcUrCr()"/></div>
+      <div class="f"><label>Creatinina (mg/dL)</label><input id="f-cr" placeholder="—" oninput="calcTFG();calcUrCr()"/></div>
       <div class="f">
         <label>TFG (mL/min)</label>
         <input id="f-tfg" placeholder="CKD-EPI 2021" oninput="tfgManual()"/>
         <div class="tfg-calc" id="tfg-calc">— mL/min · CKD-EPI 2021</div>
       </div>
       <div class="f"><label>Ácido Úrico</label><input id="f-au" placeholder="—"/></div>
+      <div class="f ff">
+        <div class="calc-box" id="urcr-box">— Relação Ur/Cr</div>
+      </div>
     </div>
   </div>
 
@@ -382,14 +392,17 @@ background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;tr
       <div class="f"><label>Na (mEq/L)</label><input id="f-na" placeholder="—"/></div>
       <div class="f"><label>K (mEq/L)</label><input id="f-k" placeholder="—"/></div>
       <div class="f"><label>Cl (mEq/L)</label><input id="f-cl" placeholder="—"/></div>
-      <div class="f"><label>Ca total (mg/dL)</label><input id="f-ca" placeholder="—"/></div>
+      <div class="f"><label>Ca total (mg/dL)</label><input id="f-ca" placeholder="—" oninput="calcCaP()"/></div>
       <div class="f">
         <label>Ca iônico (mmol/L)</label>
         <input id="f-cai" placeholder="—" oninput="checkCaI(this)"/>
         <div id="cai-flag" style="display:none;font-size:10.5px;font-weight:600;margin-top:3px"></div>
       </div>
-      <div class="f"><label>P (mg/dL)</label><input id="f-p" placeholder="—"/></div>
+      <div class="f"><label>P (mg/dL)</label><input id="f-p" placeholder="—" oninput="calcCaP()"/></div>
       <div class="f"><label>Mg (mg/dL)</label><input id="f-mg" placeholder="—"/></div>
+      <div class="f ff">
+        <div class="calc-box" id="cap-box">— Produto Ca×P</div>
+      </div>
     </div>
   </div>
 
@@ -406,6 +419,22 @@ background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;tr
     </div>
   </div>
 
+  <!-- URINA ROTINA -->
+  <div class="fsec">
+    <div class="fsec-ttl ur">Urina Rotina (EAS)</div>
+    <div class="fg">
+      <div class="f"><label>pH urinário</label><input id="f-ur-ph" placeholder="Ex: 6.0"/></div>
+      <div class="f"><label>Nitrito</label><input id="f-ur-nit" placeholder="Neg / Pos"/></div>
+      <div class="f"><label>Leucócitos (/campo)</label><input id="f-ur-leuc" placeholder="—"/></div>
+      <div class="f"><label>Hemácias (/campo)</label><input id="f-ur-hem" placeholder="—"/></div>
+      <div class="f"><label>Bactérias</label><input id="f-ur-bact" placeholder="Aus / Esc / Mod / Int"/></div>
+      <div class="f"><label>Proteinúria</label><input id="f-ur-prot" placeholder="Neg / + / ++ / +++"/></div>
+      <div class="f"><label>Cilindros</label><input id="f-ur-cil" placeholder="Aus / tipo..."/></div>
+      <div class="f"><label>Leveduras</label><input id="f-ur-lev" placeholder="Aus / Pres"/></div>
+      <div class="f ff"><label>Outros (EAS)</label><input id="f-ur-rot" placeholder="Densidade, células epiteliais, cristais..."/></div>
+    </div>
+  </div>
+
   <!-- COMPLEMENTARES -->
   <div class="fsec">
     <div class="fsec-ttl c">Complementares</div>
@@ -419,6 +448,16 @@ background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;tr
       <div class="f"><label>TSAT (%)</label><input id="f-tsat" placeholder="—"/></div>
       <div class="f"><label>Fosfatase Alc.</label><input id="f-falc" placeholder="—"/></div>
       <div class="f"><label>TGO / TGP</label><input id="f-tgo" placeholder="—"/></div>
+      <div class="f ff"><label>Outros complementares</label><textarea id="f-comp-outros" placeholder="Ex: BNP 850, D-dímero 2.4, sorol. hepatite pendente..." style="min-height:50px"></textarea></div>
+    </div>
+  </div>
+
+  <!-- CULTURAS / SOROLOGIAS -->
+  <div class="fsec">
+    <div class="fsec-ttl cult">Culturas / Sorologias</div>
+    <div class="fg">
+      <div class="f"><label>Cultura</label><input id="f-cultura" placeholder="Ex: Hemocultura coletada, Urocultura + E.coli..."/></div>
+      <div class="f ff"><label>Sorologias / Imunologia</label><textarea id="f-sorologia" placeholder="Ex: ANCA-PR3 +, Anti-GBM neg, HBsAg neg, Anti-HCV pos..." style="min-height:58px"></textarea></div>
     </div>
   </div>
 
@@ -441,10 +480,10 @@ background:#fafaf8;color:#1a1a18;font-family:inherit;outline:none;width:180px;tr
       <div class="f ff">
         <label>Dispositivos em uso</label>
         <div class="chips" id="disp-chips" style="margin-top:4px">
-          <span class="chip" data-d="AVF"      onclick="togDisp(this)">AVF</span>
+          <span class="chip" data-d="FAV-Nativa" onclick="togDisp(this)">FAV Nativa</span>
           <span class="chip" data-d="CVC"      onclick="togDisp(this)">CVC</span>
           <span class="chip" data-d="PICC"     onclick="togDisp(this)">PICC</span>
-          <span class="chip" data-d="FAV-Bio"  onclick="togDisp(this)">FAV Biossintética</span>
+          <span class="chip" data-d="FAV-Protese" onclick="togDisp(this)">FAV Prótese</span>
           <span class="chip" data-d="Cat-Perm" onclick="togDisp(this)">Cateter Permanente</span>
           <span class="chip" data-d="Cat-Temp" onclick="togDisp(this)">Cateter Temporário</span>
           <span class="chip" data-d="IOT"      onclick="togDisp(this)">IOT</span>
@@ -608,7 +647,9 @@ let pts=[],curTab='all',editId=null,curSec=null,curSex=null;
 const SL={enf:'Enfermaria',uti:'UTI',ps:'P.Socorro',par:'Parecer'};
 const FIELDS=['leito','nome','idade','sexo','diag','hb','ht','leuc','bast','plaq','retic',
   'ur','cr','tfg','au','na','k','cl','ca','cai','p','mg','bh','diur','ph','bic','pco2','lac',
-  'pcr','pct','alb','pth','vitd','ferr','tsat','falc','tgo',
+  'ur-ph','ur-nit','ur-leuc','ur-hem','ur-bact','ur-prot','ur-cil','ur-lev','ur-rot',
+  'pcr','pct','alb','pth','vitd','ferr','tsat','falc','tgo','comp-outros',
+  'cultura','sorologia',
   'fe','img','prob','obs','conduta','disp'];
 
 const $=id=>document.getElementById(id);
@@ -866,6 +907,39 @@ function loadDisp(val){
   const ouEl=document.getElementById('f-disp-outro');
   if(ouEl)ouEl.value=outros.join(', ');
 }
+
+// Relação Ur/Cr
+window.calcUrCr=function(){
+  const ur=parseFloat(document.getElementById('f-ur')?.value||'');
+  const cr=parseFloat(document.getElementById('f-cr')?.value||'');
+  const box=document.getElementById('urcr-box');
+  if(!box)return;
+  if(isNaN(ur)||isNaN(cr)||cr===0){box.className='calc-box';return;}
+  const r=Math.round(ur/cr*10)/10;
+  let cls='calc-box show', interp='';
+  if(r<10)     {cls='calc-box show alert'; interp='↓ Baixa (<10) — sugestivo de doença hepática / desnutrição';}
+  else if(r<20){cls='calc-box show'; interp='Normal (10–20)';}
+  else if(r<40){cls='calc-box show warn'; interp='↑ Elevada (20–40) — considerar hiperazotemiaante-renal ou aumento catabolismo';}
+  else         {cls='calc-box show alert'; interp='↑↑ Muito elevada (>40) — sugestivo de causa pré-renal acentuada';}
+  box.className=cls;
+  box.textContent='Ur/Cr = '+r+' · '+interp;
+};
+
+// Produto Ca×P
+window.calcCaP=function(){
+  const ca=parseFloat(document.getElementById('f-ca')?.value||'');
+  const p =parseFloat(document.getElementById('f-p')?.value||'');
+  const box=document.getElementById('cap-box');
+  if(!box)return;
+  if(isNaN(ca)||isNaN(p)){box.className='calc-box';return;}
+  const prod=Math.round(ca*p*10)/10;
+  let cls='calc-box show', interp='';
+  if(prod<35)      {cls='calc-box show'; interp='Normal (<35)';}
+  else if(prod<55) {cls='calc-box show warn'; interp='↑ Elevado (35–55) — risco de calcificação vascular';}
+  else             {cls='calc-box show alert'; interp='↑↑ Alto (>55) — risco elevado de calcificação';}
+  box.className=cls;
+  box.textContent='Ca×P = '+prod+' mg²/dL² · '+interp;
+};
 
 window.toInitials=function(){
   const el=document.getElementById('f-nome');
@@ -1290,6 +1364,15 @@ window.updResumo=function(){
   }
 
   // Imagem / FE
+  // Urina rotina
+  const urFields=[['pH',gf('ur-ph')],['Nitrito',gf('ur-nit')],['Leuc',gf('ur-leuc')],
+    ['Hem',gf('ur-hem')],['Bact',gf('ur-bact')],['Prot',gf('ur-prot')],
+    ['Cil',gf('ur-cil')],['Lev',gf('ur-lev')],['Outros',gf('ur-rot')]].filter(x=>x[1]);
+  if(urFields.length){
+    lines.push('');
+    lines.push('URINA ROTINA: '+urFields.map(x=>x[0]+' '+x[1]).join(' | '));
+  }
+
   const fe=gf('fe'), img=gf('img');
   if(fe||img){
     lines.push('');
@@ -1333,6 +1416,14 @@ window.updResumo=function(){
   }
 
   // Conduta / Obs
+  const compOu=gf('comp-outros'), cult=gf('cultura'), soro=gf('sorologia');
+  if(compOu){lines.push('');lines.push('COMPLEMENTARES (outros): '+compOu);}
+  if(cult||soro){
+    lines.push('');lines.push('CULTURAS / SOROLOGIAS:');
+    if(cult)lines.push('  Cultura: '+cult);
+    if(soro)lines.push('  Sorologias: '+soro);
+  }
+
   const disp=gf('disp'), prob=gf('prob'), obs=gf('obs'), cond=gf('conduta');
   if(disp){lines.push('');lines.push('DISPOSITIVOS: '+disp);}
   if(prob){lines.push('');lines.push('PROBLEMAS:');prob.split('\n').forEach(l=>{if(l.trim())lines.push('  '+l.trim());});}
