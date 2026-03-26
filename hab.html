@@ -402,6 +402,7 @@ mark{background:#fef9c3;color:#854d0e;border-radius:2px;padding:0 1px}
     <div class="fsec-ttl c">Complementares</div>
     <div class="fg">
       <div class="f"><label>PCR (mg/L)</label><input id="f-pcr" placeholder="—"/></div>
+      <div class="f"><label>Procalcitonina (ng/mL)</label><input id="f-pct" placeholder="—"/></div>
       <div class="f"><label>Albumina (g/dL)</label><input id="f-alb" placeholder="—"/></div>
       <div class="f"><label>PTH (pg/mL)</label><input id="f-pth" placeholder="—"/></div>
       <div class="f"><label>Vit D 25-OH</label><input id="f-vitd" placeholder="—"/></div>
@@ -419,6 +420,15 @@ mark{background:#fef9c3;color:#854d0e;border-radius:2px;padding:0 1px}
       <div class="f"><label>Diagnóstico / CID</label><input id="f-diag" placeholder="Ex: DRC G5, LRA..."/></div>
       <div class="f ff"><label>Conduta do dia</label><textarea id="f-conduta" placeholder="Ex: Ajuste EPO, iniciar sevelamer, HD amanhã..."></textarea></div>
       <div class="f ff"><label>Observações / Evolução</label><textarea id="f-obs" placeholder="Evolução clínica, intercorrências, pendências..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- IMAGEM / FUNÇÃO CARDÍACA -->
+  <div class="fsec">
+    <div class="fsec-ttl" style="color:#0f766e;border-color:#99f6e4">Imagem / Função Cardíaca</div>
+    <div class="fg">
+      <div class="f"><label>FE VE (%)</label><input id="f-fe" placeholder="Ex: 45, reduzida..."/></div>
+      <div class="f ff"><label>Exames de Imagem / Outros</label><textarea id="f-img" placeholder="Ex: ECO — DDFVE 58mm, HVE moderada. RX tórax — infiltrado bibasal. USG rins — rins globosos..."></textarea></div>
     </div>
   </div>
 
@@ -558,7 +568,8 @@ let pts=[],curTab='all',editId=null,curSec=null,curSex=null;
 const SL={enf:'Enfermaria',uti:'UTI',ps:'P.Socorro',par:'Parecer'};
 const FIELDS=['leito','nome','idade','sexo','diag','hb','ht','leuc','bast','plaq','retic',
   'ur','cr','tfg','au','na','k','cl','ca','p','mg','bh','diur','ph','bic','pco2','lac',
-  'pcr','alb','pth','vitd','ferr','tsat','falc','tgo','conduta','obs'];
+  'pcr','pct','alb','pth','vitd','ferr','tsat','falc','tgo',
+  'fe','img','conduta','obs'];
 
 const $=id=>document.getElementById(id);
 const gv=id=>{const e=$('f-'+id);return e?e.value.trim():'';};
@@ -955,22 +966,73 @@ function renderRxDoses(){
 // RESUMO
 window.updResumo=function(){
   const box=document.getElementById('resumo-box');if(!box)return;
-  const nome=document.getElementById('f-nome')?.value.trim()||'Paciente';
-  const leito=document.getElementById('f-leito')?.value.trim()||'—';
-  const tfgVal=parseFloat(document.getElementById('f-tfg')?.value||'');
+  const gf=id=>{const e=document.getElementById('f-'+id);return e?e.value.trim():'';};
+  const nome=gf('nome')||'Paciente';
+  const leito=gf('leito')||'—';
+  const tfgVal=parseFloat(gf('tfg'));
   const tfg=isNaN(tfgVal)?null:tfgVal;
   const lines=[];
 
-  lines.push('=== '+leito+' — '+nome+' ===');
-  const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  lines.push('Data: '+dt);
+  // Cabeçalho
+  const sx={'M':'♂','F':'♀'}[gf('sexo')]||'';
+  const idade=gf('idade');
+  lines.push('=== '+leito+' — '+nome+(sx?' '+sx:'')+(idade?' ('+idade+'a)':'')+'  ===');
+  lines.push('Data: '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}));
+  const diag=gf('diag');
+  if(diag) lines.push('Diagnóstico: '+diag);
   lines.push('');
 
   // HD
   if(hdHoje){
     const modLabel={'hd-conv':'HD Convencional','hdf-ol':'HDF Online','sled':'SLED','crrt':'CRRT'};
     const obs=document.getElementById('f-hd-obs')?.value.trim();
-    lines.push('[ HD HOJE ] '+(hdMod?modLabel[hdMod]:'modalidade não selecionada')+(obs?' — '+obs:''));
+    lines.push('[ HD HOJE ] '+(hdMod?modLabel[hdMod]:'modalidade a definir')+(obs?' — '+obs:''));
+    lines.push('');
+  }
+
+  // Hemograma
+  const hemo=[['Hb',gf('hb'),'g/dL'],['Ht',gf('ht'),'%'],['Leuc',gf('leuc'),'mil/µL'],
+    ['Bast',gf('bast'),'%'],['Plaq',gf('plaq'),'mil/µL'],['Retic',gf('retic'),'%']].filter(x=>x[1]);
+  if(hemo.length){
+    lines.push('HEMOGRAMA: '+hemo.map(x=>x[0]+' '+x[1]+' '+x[2]).join(' | '));
+  }
+
+  // Escórias
+  const esc=[['Ur',gf('ur'),'mg/dL'],['Cr',gf('cr'),'mg/dL'],
+    ['TFG',gf('tfg'),'mL/min'+(tfg?' (CKD-EPI)':'')],['Au',gf('au'),'mg/dL']].filter(x=>x[1]);
+  if(esc.length){
+    lines.push('ESCÓRIAS: '+esc.map(x=>x[0]+' '+x[1]+' '+x[2]).join(' | '));
+  }
+
+  // Eletrólitos
+  const elet=[['Na',gf('na'),'mEq/L'],['K',gf('k'),'mEq/L'],['Cl',gf('cl'),'mEq/L'],
+    ['Ca',gf('ca'),'mg/dL'],['P',gf('p'),'mg/dL'],['Mg',gf('mg'),'mg/dL']].filter(x=>x[1]);
+  if(elet.length){
+    lines.push('ELETRÓLITOS: '+elet.map(x=>x[0]+' '+x[1]+' '+x[2]).join(' | '));
+  }
+
+  // BH / Gasometria
+  const bh=[['BH 24h',gf('bh'),'mL'],['Diurese',gf('diur'),'mL/24h'],
+    ['pH',gf('ph'),''],['HCO₃',gf('bic'),'mEq/L'],['pCO₂',gf('pco2'),''],['Lactato',gf('lac'),'']].filter(x=>x[1]);
+  if(bh.length){
+    lines.push('BH/GASO: '+bh.map(x=>x[0]+' '+x[1]+(x[2]?' '+x[2]:'')).join(' | '));
+  }
+
+  // Complementares
+  const comp=[['PCR',gf('pcr'),'mg/L'],['PCT',gf('pct'),'ng/mL'],['Alb',gf('alb'),'g/dL'],
+    ['PTH',gf('pth'),'pg/mL'],['VitD',gf('vitd'),''],['Ferr',gf('ferr'),'ng/mL'],
+    ['TSAT',gf('tsat'),'%'],['FA',gf('falc'),''],['TGO/TGP',gf('tgo'),'']].filter(x=>x[1]);
+  if(comp.length){
+    lines.push('COMPLEMENT.: '+comp.map(x=>x[0]+' '+x[1]+(x[2]?' '+x[2]:'')).join(' | '));
+  }
+
+  // Imagem / FE
+  const fe=gf('fe'), img=gf('img');
+  if(fe||img){
+    lines.push('');
+    lines.push('IMAGEM / FUNÇÃO CARDÍACA:');
+    if(fe) lines.push('  FE VE: '+fe+'%');
+    if(img) lines.push('  '+img);
   }
 
   // DVA
@@ -984,7 +1046,7 @@ window.updResumo=function(){
 
   // ATB
   if(selAtb.size){
-    lines.push('');lines.push('ANTIBIÓTICOS'+(tfg?' (TFG ~'+Math.round(tfg)+' mL/min)':'')+'<br>');
+    lines.push('');lines.push('ANTIBIÓTICOS'+(tfg?' (TFG ~'+Math.round(tfg)+' mL/min)':'')+ ':');
     selAtb.forEach(k=>{
       const d=ATB_DATA[k];if(!d)return;
       let linha='  • '+d.nome+' '+d.freq;
@@ -1005,6 +1067,14 @@ window.updResumo=function(){
       const dose=document.getElementById('rx-'+k)?.value.trim();
       lines.push('  • '+RX_NOME[k]+(dose?' — '+dose:''));
     });
+  }
+
+  // Conduta / Obs
+  const cond=gf('conduta'), obs=gf('obs');
+  if(cond||obs){
+    lines.push('');
+    if(cond){lines.push('CONDUTA:');lines.push('  '+cond);}
+    if(obs){lines.push('EVOLUÇÃO:');lines.push('  '+obs);}
   }
 
   const text=lines.join('\n');
