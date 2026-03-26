@@ -847,29 +847,167 @@ window.switchMTab=function(tab){
 };
 
 // ── ATB data — doses normais + ajuste renal (CKD-EPI) ─────
+// ATB_DATA — Fonte: Guia de Antibioticoterapia Empírica HAB 2023
+// Limiares de TFG (CrCl mL/min); valor abaixo do qual o ajuste se aplica
 const ATB_DATA={
-  'pip-tazo':    {nome:'Pip-Tazo 4,5g EV',  freq:'6/6h', ajuste:{15:'2,25g 8/8h',30:'3,375g 8/8h',60:'dose plena'}},
-  'meropenem':   {nome:'Meropenem 1g EV',   freq:'8/8h', ajuste:{15:'0,5g 12/12h',30:'1g 12/12h',60:'dose plena'}},
-  'cefepime':    {nome:'Cefepime 2g EV',    freq:'8/8h', ajuste:{15:'1g 24/24h',30:'1g 12/12h',60:'dose plena'}},
-  'ceftriaxona': {nome:'Ceftriaxona 2g EV', freq:'24/24h',ajuste:{}},
-  'cefazolina':  {nome:'Cefazolina 2g EV',  freq:'8/8h', ajuste:{15:'1g 24/24h',30:'1g 12/12h',60:'dose plena'}},
-  'ampicilina-sulbactam':{nome:'Amp-Sulbactam 3g EV',freq:'6/6h',ajuste:{15:'1,5g 12/12h',30:'1,5g 8/8h',60:'dose plena'}},
-  'ertapenem':   {nome:'Ertapenem 1g EV',   freq:'24/24h',ajuste:{30:'0,5g 24/24h',60:'dose plena'}},
-  'vancomicina': {nome:'Vancomicina EV',     freq:'12/12h (ajustar por nível)',ajuste:{15:'monitorar nível — intervalo estendido',30:'12/12h com monitorização',60:'dose plena'}},
-  'teicoplanina':{nome:'Teicoplanina EV',    freq:'24/24h (após ataque)',ajuste:{30:'manter dose — reduzir frequência em IR grave',60:'dose plena'}},
-  'amicacina':   {nome:'Amicacina EV',       freq:'dose única diária',ajuste:{15:'CONTRAINDICADA — nefrotóxico em IR',30:'intervalo estendido — dose única 72/72h',60:'dose única 48/48h — monitorar nível'}},
-  'gentamicina': {nome:'Gentamicina EV',     freq:'dose única diária',ajuste:{15:'CONTRAINDICADA — nefrotóxico em IR',30:'intervalo estendido 72/72h',60:'intervalo 48/48h — monitorar nível'}},
-  'ciprofloxacino':{nome:'Ciprofloxacino 400mg EV',freq:'12/12h',ajuste:{30:'200mg 12/12h',60:'dose plena'}},
-  'levofloxacino': {nome:'Levofloxacino 500mg EV/VO',freq:'24/24h',ajuste:{20:'250mg 48/48h',50:'250mg 24/24h',60:'dose plena'}},
-  'metronidazol':  {nome:'Metronidazol 500mg EV',freq:'8/8h',ajuste:{}},
-  'clindamicina':  {nome:'Clindamicina 600mg EV',freq:'8/8h',ajuste:{}},
-  'azitromicina':  {nome:'Azitromicina 500mg VO/EV',freq:'24/24h',ajuste:{}},
-  'fluconazol':    {nome:'Fluconazol 400mg EV/VO',freq:'24/24h',ajuste:{50:'200mg 24/24h',60:'dose plena'}},
-  'smx-tmp':       {nome:'SMX-TMP 960mg EV/VO',freq:'12/12h',ajuste:{15:'EVITAR — risco de hipercalemia e nefrotoxicidade',30:'50% da dose 18/18h',60:'dose plena'}},
-  'polimixina-b':  {nome:'Polimixina B EV',freq:'12/12h (dose por peso)',ajuste:{15:'reduzir 50% — monitorar função renal residual',60:'dose plena'}},
-  'linezolida':    {nome:'Linezolida 600mg EV/VO',freq:'12/12h',ajuste:{}},
-  'daptomicina':   {nome:'Daptomicina EV',freq:'24/24h (dose por peso)',ajuste:{30:'dose plena — monitorar CK',60:'dose plena'}},
-};
+  // ── BETA-LACTÂMICOS ────────────────────────────────────────
+  'pip-tazo': {
+    nome:'Piperacilina-Tazobactam 4,5g EV', freq:'6/6h',
+    ajuste:{
+      50: '2,25g 6/6h (CrCl 10–50)',
+      10: '2,25g 8/8h (CrCl <10)',
+      0:  'HD intermitente: dose adicional de 750mg após cada sessão'
+    }
+  },
+  'meropenem': {
+    nome:'Meropenem 1g EV', freq:'8/8h',
+    ajuste:{
+      50: '1g 12/12h (CrCl 10–50)',
+      10: '500mg 24/24h (CrCl <10)',
+      0:  'HD: dose adicional de 500mg após a HD'
+    }
+  },
+  'cefepime': {
+    nome:'Cefepime 2g EV', freq:'12/12h',
+    ajuste:{
+      30: '2g 24/24h (CrCl 10–30)',
+      10: '1g 24/24h (CrCl <10)',
+      0:  'HD: dose adicional de 1g após a HD'
+    }
+  },
+  'ceftriaxona': {
+    nome:'Ceftriaxona 2g EV', freq:'24/24h',
+    ajuste:{}  // sem ajuste renal pelo guia HAB
+  },
+  'cefazolina': {
+    nome:'Cefazolina 2g EV', freq:'8/8h',
+    ajuste:{
+      30: '2g 12/12h (CrCl 10–30)',
+      10: '2g 24/24h (CrCl <10)'
+    }
+  },
+  'ampicilina-sulbactam': {
+    nome:'Ampicilina-Sulbactam 3g EV', freq:'6/6h',
+    ajuste:{
+      30: '3g 12/12h (CrCl 10–30)',
+      10: '3g 24/24h (CrCl <10)',
+      0:  'HD: dose adicional de 3g após a HD'
+    }
+  },
+  'ertapenem': {
+    nome:'Ertapenem 1g EV', freq:'24/24h',
+    ajuste:{
+      30: '500mg 24/24h (CrCl <30)',
+      0:  'HD: dose adicional de 150mg após a HD'
+    }
+  },
+
+  // ── GLICOPEPTÍDEOS ─────────────────────────────────────────
+  'vancomicina': {
+    nome:'Vancomicina EV', freq:'1g 12/12h — monitorar nível (vancocinemia)',
+    ajuste:{
+      50: '15mg/kg 48/48h (CrCl 10–50)',
+      10: '7,5mg/kg 48/48h (CrCl <10)',
+      0:  'HD: diária 15mg/kg/2d | cada 2d: 25mg/kg | cada 3d: 35mg/kg — preferir monitorar vancocinemia'
+    }
+  },
+  'teicoplanina': {
+    nome:'Teicoplanina EV', freq:'400–800mg 24/24h (após ataque 3 doses)',
+    ajuste:{
+      30: 'Reduzir para 48/48h após dia 3 (CrCl <30)'
+    }
+  },
+
+  // ── AMINOGLICOSÍDEOS ───────────────────────────────────────
+  'amicacina': {
+    nome:'Amicacina EV', freq:'15mg/kg 24/24h — monitorar nível',
+    ajuste:{
+      50: '7,5mg/kg 24/24h (CrCl 30–50)',
+      30: '7,5mg/kg 48/48h (CrCl 10–30)',
+      10: '7,5mg/kg 72/72h (CrCl <10)',
+      0:  'HD: dose adicional de 7,5mg/kg após a HD'
+    }
+  },
+  'gentamicina': {
+    nome:'Gentamicina EV', freq:'2mg/kg 8/8h — monitorar nível',
+    ajuste:{
+      50: '2mg/kg 12/12h ou 24/24h (CrCl <90)',
+      10: '2mg/kg 48/48h (CrCl <10)',
+      0:  'HD: dose adicional de 50% após a HD'
+    }
+  },
+
+  // ── QUINOLONAS ─────────────────────────────────────────────
+  'ciprofloxacino': {
+    nome:'Ciprofloxacino 400mg EV', freq:'12/12h',
+    ajuste:{
+      10: '400mg 24/24h — ajustar para 200mg 12/12h (CrCl <10)',
+      0:  'HD: sem dose adicional'
+    }
+  },
+  'levofloxacino': {
+    nome:'Levofloxacino 750mg EV/VO', freq:'24/24h',
+    ajuste:{
+      50: '750mg 48/48h (CrCl 10–50)',
+      10: '500mg 48/48h (CrCl <10) — ataque 750mg',
+      0:  'HD: ataque 750mg; depois 500mg/48h sem dose adicional'
+    }
+  },
+
+  // ── OUTROS ─────────────────────────────────────────────────
+  'metronidazol': {
+    nome:'Metronidazol 7,5mg/kg EV', freq:'6/6h',
+    ajuste:{
+      10: '7,5mg/kg 12/12h (CrCl <10)',
+      0:  'HD: dose adicional de 7,5mg/kg após a HD'
+    }
+  },
+  'clindamicina': {
+    nome:'Clindamicina 600mg EV', freq:'8/8h',
+    ajuste:{
+      10: '600mg 12/12h (CrCl <10) — sem dose adicional pós-HD'
+    }
+  },
+  'azitromicina': {
+    nome:'Azitromicina 500mg VO/EV', freq:'24/24h',
+    ajuste:{}  // sem ajuste renal
+  },
+  'fluconazol': {
+    nome:'Fluconazol EV/VO', freq:'200–400mg 24/24h',
+    ajuste:{
+      50: '200mg 24/24h (CrCl 10–50)',
+      10: '200mg 24/24h (CrCl <10)',
+      0:  'HD: dose igual à prescrita após a HD'
+    }
+  },
+  'smx-tmp': {
+    nome:'Sulfametoxazol-Trimetoprim EV/VO (dose em SMX)', freq:'20mg/kg/dia 6/6h',
+    ajuste:{
+      50: '20mg/kg/dia 6/6h (CrCl 30–50)',
+      30: '10mg/kg/dia 6/6h (CrCl 10–30)',
+      10: '10mg/kg 24/24h (CrCl <10)',
+      0:  'HD: realizar após HD, sem dose adicional'
+    }
+  },
+  'polimixina-b': {
+    nome:'Polimixina B EV', freq:'Ataque 25.000UI/kg/dia 12/12h; Manutenção 15.000UI/kg/dia 12/12h',
+    ajuste:{}  // sem ajuste renal — guia HAB
+  },
+  'linezolida': {
+    nome:'Linezolida 600mg EV/VO', freq:'12/12h',
+    ajuste:{
+      0: 'HD: realizar após HD, sem dose adicional'
+    }
+  },
+  'daptomicina': {
+    nome:'Daptomicina EV', freq:'4–6mg/kg 24/24h',
+    ajuste:{
+      50: '4–6mg/kg 24/24h (CrCl 30–50)',
+      30: '4–6mg/kg 48/48h (CrCl 10–30)',
+      0:  'HD: realizar após HD, sem dose adicional'
+    }
+  },
+}
 
 const DVA_UNIDADE={
   'norepi':'mcg/kg/min','vasop':'UI/min','dopamina':'mcg/kg/min',
@@ -1066,10 +1204,10 @@ window.updResumo=function(){
       const d=ATB_DATA[k];if(!d)return;
       let linha='  • '+d.nome+' '+d.freq;
       if(tfg!==null&&Object.keys(d.ajuste).length){
-        const ts=Object.keys(d.ajuste).map(Number).sort((a,b)=>a-b);
+        const ts=Object.keys(d.ajuste).map(Number).filter(t=>t!==999).sort((a,b)=>a-b);
         let adj=null;
         for(const t of ts){if(tfg<t){adj=d.ajuste[t];break;}}
-        if(adj&&adj!=='dose plena')linha+='\n    ⚠ Ajuste IR: '+adj;
+        if(adj)linha+='\n    ⚠ Ajuste IR (TFG ~'+Math.round(tfg)+'): '+adj;
       }
       lines.push(linha);
     });
