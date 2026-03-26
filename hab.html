@@ -790,8 +790,29 @@ window.openModal=function(id){
   $('ov').classList.add('open');
 };
 window.openEdit=id=>window.openModal(id);
-window.closeModal=function(){$('ov').classList.remove('open');editId=null;curSec=null;};
-window.ovClick=e=>{if(e.target===$('ov'))window.closeModal();};
+function hasUnsaved(){
+  // Check if any meaningful field has been filled
+  const skip=['sexo','disp'];
+  return FIELDS.filter(f=>!skip.includes(f)).some(f=>{
+    const e=$('f-'+f);
+    return e&&e.value.trim()!=='';
+  }) || selDisp.size>0 || selAtb.size>0 || selDva.size>0 || selRx.size>0 || hdHoje;
+}
+
+function doClose(){
+  $('ov').classList.remove('open');
+  editId=null;curSec=null;
+}
+
+window.closeModal=function(){
+  if(hasUnsaved()&&!confirm('Há dados não salvos. Deseja fechar sem salvar?'))return;
+  doClose();
+};
+
+// Overlay click — only close if clicking the dark backdrop, not the modal itself
+window.ovClick=e=>{
+  if(e.target===$('ov'))window.closeModal();
+};
 
 function clearF(){
   FIELDS.forEach(f=>{const e=$('f-'+f);if(e)e.value='';});
@@ -1112,7 +1133,7 @@ window.doSave=async function(){
   try{
     if(editId){await setDoc(doc(db,COL,editId),d,{merge:true});toast('Atualizado ✓');}
     else{d.criadoEm=serverTimestamp();await addDoc(collection(db,COL),d);toast('Paciente adicionado ✓');}
-    window.closeModal();
+    doClose();
   }catch(e){toast('Erro: '+e.message,'err');}
   finally{btn.disabled=false;btn.textContent='Salvar';}
 };
@@ -1122,7 +1143,7 @@ window.doDel=async function(){
   if(!editId)return;
   const p=pts.find(x=>x.id===editId);
   if(!confirm('Excluir '+(p?.nome||p?.leito||'paciente')+'?'))return;
-  try{await deleteDoc(doc(db,COL,editId));toast('Removido');window.closeModal();}
+  try{await deleteDoc(doc(db,COL,editId));toast('Removido');doClose();}
   catch(e){toast('Erro: '+e.message,'err');}
 };
 window.quickDel=async function(id){
@@ -1156,7 +1177,7 @@ setInterval(updDate,1000);updDate();
 
 // KEYS
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape')window.closeModal();
+  if(e.key==='Escape'){if(!hasUnsaved()||confirm('Há dados não salvos. Deseja fechar sem salvar?'))doClose();}
   if((e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();window.openModal();}
   if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();$('srch').focus();}
 });
