@@ -504,6 +504,9 @@ font-family:“DM Mono”,monospace;font-size:12px;color:#166534;margin-top:2px;
         <input id="f-disp-outro" class="disp-other" placeholder="Outro dispositivo..." oninput="dispOutroSync()"/>
       </div>
 
+      <!-- ANTECEDENTES -->
+      <div class="f ff"><label>Antecedentes</label><textarea id="f-antec" placeholder="Ex: HAS, DM2, DRC G5 em HD desde 2019, IRC pós-LRA, FA, ICC FE 35%..." style="min-height:54px"></textarea></div>
+
       <!-- PROBLEMAS -->
       <div class="f ff"><label>Problemas ativos</label><textarea id="f-prob" placeholder="1. LRA sobre DRC G3&#10;2. Hipercalemia K+ 6.2&#10;3. Infecção de CVC..."></textarea></div>
 
@@ -654,7 +657,7 @@ const FIELDS=['leito','nome','idade','sexo','diag','hb','ht','leuc','bast','plaq
   'ur-ph','ur-nit','ur-leuc','ur-hem','ur-bact','ur-prot','ur-cil','ur-lev','ur-rot',
   'pcr','pct','alb','pth','vitd','ferr','tsat','falc','tgo','comp-outros',
   'cultura','sorologia',
-  'fe','img','prob','obs','conduta','disp'];
+  'fe','img','antec','prob','obs','conduta','disp'];
 
 const $=id=>document.getElementById(id);
 const gv=id=>{const e=$('f-'+id);return e?e.value.trim():'';};
@@ -1556,7 +1559,8 @@ window.updResumo=function(){
     if(soro)lines.push('  Sorologias: '+soro);
   }
 
-  const disp=gf('disp'), prob=gf('prob'), obs=gf('obs'), cond=gf('conduta');
+  const antec=gf('antec'), disp=gf('disp'), prob=gf('prob'), obs=gf('obs'), cond=gf('conduta');
+  if(antec){lines.push('');lines.push('ANTECEDENTES: '+antec);}
   if(disp){lines.push('');lines.push('DISPOSITIVOS: '+disp);}
   if(prob){lines.push('');lines.push('PROBLEMAS:');prob.split('\n').forEach(l=>{if(l.trim())lines.push('  '+l.trim());});}
   if(obs){lines.push('');lines.push('EVOLUÇÃO:');lines.push('  '+obs);}
