@@ -389,9 +389,9 @@ font-family:“DM Mono”,monospace;font-size:12px;color:#166534;margin-top:2px;
   <div class="fsec">
     <div class="fsec-ttl el">Eletrólitos</div>
     <div class="fg">
-      <div class="f"><label>Na (mEq/L)</label><input id="f-na" placeholder="—"/></div>
+      <div class="f"><label>Na (mEq/L)</label><input id="f-na" placeholder="—" oninput="calcGaso()"/></div>
       <div class="f"><label>K (mEq/L)</label><input id="f-k" placeholder="—"/></div>
-      <div class="f"><label>Cl (mEq/L)</label><input id="f-cl" placeholder="—"/></div>
+      <div class="f"><label>Cl (mEq/L)</label><input id="f-cl" placeholder="—" oninput="calcGaso()"/></div>
       <div class="f"><label>Ca total (mg/dL)</label><input id="f-ca" placeholder="—" oninput="calcCaP()"/></div>
       <div class="f">
         <label>Ca iônico (mmol/L)</label>
@@ -412,10 +412,14 @@ font-family:“DM Mono”,monospace;font-size:12px;color:#166534;margin-top:2px;
     <div class="fg">
       <div class="f"><label>BH 24h (mL)</label><input id="f-bh" placeholder="Ex: +350"/></div>
       <div class="f"><label>Diurese (mL/24h)</label><input id="f-diur" placeholder="—"/></div>
-      <div class="f"><label>pH</label><input id="f-ph" placeholder="—"/></div>
-      <div class="f"><label>HCO₃ (mEq/L)</label><input id="f-bic" placeholder="—"/></div>
-      <div class="f"><label>pCO₂</label><input id="f-pco2" placeholder="—"/></div>
+      <div class="f"><label>pH</label><input id="f-ph" placeholder="—" oninput="calcGaso()"/></div>
+      <div class="f"><label>HCO₃ (mEq/L)</label><input id="f-bic" placeholder="—" oninput="calcGaso()"/></div>
+      <div class="f"><label>pCO₂ (mmHg)</label><input id="f-pco2" placeholder="—" oninput="calcGaso()"/></div>
+      <div class="f"><label>AG / Ânion Gap</label><input id="f-ag" placeholder="Auto ou manual" oninput="calcGaso()"/></div>
       <div class="f"><label>Lactato</label><input id="f-lac" placeholder="—"/></div>
+      <div class="f ff">
+        <div class="calc-box" id="gaso-box" style="line-height:1.7;white-space:pre-wrap">— Interpretação da gasometria</div>
+      </div>
     </div>
   </div>
 
@@ -908,6 +912,129 @@ function loadDisp(val){
   if(ouEl)ouEl.value=outros.join(', ');
 }
 
+
+// ── GASOMETRIA — interpretação completa ────────────────────
+window.calcGaso=function(){
+  const box=document.getElementById('gaso-box');
+  if(!box)return;
+
+  const ph  =parseFloat(document.getElementById('f-ph')?.value||'');
+  const bic =parseFloat(document.getElementById('f-bic')?.value||'');
+  const pco2=parseFloat(document.getElementById('f-pco2')?.value||'');
+  const na  =parseFloat(document.getElementById('f-na')?.value||'');
+  const cl  =parseFloat(document.getElementById('f-cl')?.value||'');
+  const alb =parseFloat(document.getElementById('f-alb')?.value||'');
+  const agEl=document.getElementById('f-ag');
+
+  if(isNaN(ph)||isNaN(bic)||isNaN(pco2)){box.className='calc-box';return;}
+
+  const lines=[];
+  let cls='calc-box show';
+
+  // ── pH
+  const acidose=ph<7.35, alcalose=ph>7.45, normal=(ph>=7.35&&ph<=7.45);
+  lines.push('pH '+ph.toFixed(2)+' → '+(acidose?'⚠ ACIDEMIA':alcalose?'⚠ ALCALEMIA':'Normal'));
+
+  // ── Distúrbio primário
+  let prim='', metab=false, resp=false;
+  if(acidose){
+    if(bic<22){prim='Acidose Metabólica'; metab=true;}
+    else if(pco2>45){prim='Acidose Respiratória'; resp=true;}
+    else{prim='Misto (bic e pCO₂ discordantes com pH)'; metab=true; resp=true;}
+  } else if(alcalose){
+    if(bic>26){prim='Alcalose Metabólica'; metab=true;}
+    else if(pco2<35){prim='Alcalose Respiratória'; resp=true;}
+    else{prim='Misto'; metab=true; resp=true;}
+  } else {
+    // pH normal — pode ser distúrbio misto compensado
+    if(bic<22&&pco2<35)prim='Misto: Acidose Met + Alcalose Resp (compensação excessiva)';
+    else if(bic>26&&pco2>45)prim='Misto: Alcalose Met + Acidose Resp';
+    else if(bic<22&&pco2>45)prim='Misto: Acidose Met + Acidose Resp (pH ainda normal)';
+    else if(bic>26&&pco2<35)prim='Misto: Alcalose Met + Alcalose Resp';
+    else prim='Sem distúrbio evidente';
+  }
+  lines.push('Distúrbio: '+prim);
+
+  // ── Compensação esperada
+  if(metab&&!resp){
+    if(acidose){
+      // Winter: pCO2 esperado = 1,5 × HCO3 + 8 ± 2
+      const pco2Exp=(1.5*bic+8);
+      const diff=Math.abs(pco2-pco2Exp);
+      let compStatus='';
+      if(diff<=2) compStatus='✓ Compensação respiratória adequada (Winter: pCO₂ esp. '+pco2Exp.toFixed(1)+')';
+      else if(pco2>pco2Exp+2) compStatus='⚠ pCO₂ '+pco2.toFixed(1)+' > esperado '+pco2Exp.toFixed(1)+' → Acidose Respiratória concomitante';
+      else compStatus='⚠ pCO₂ '+pco2.toFixed(1)+' < esperado '+pco2Exp.toFixed(1)+' → Alcalose Respiratória concomitante';
+      lines.push('Comp: '+compStatus);
+      cls='calc-box show alert';
+    } else {
+      // Alcalose met: pCO2 esp = 0,7 × (HCO3 - 24) + 40 ± 2
+      const pco2Exp=(0.7*(bic-24)+40);
+      const diff=Math.abs(pco2-pco2Exp);
+      let compStatus='';
+      if(diff<=2) compStatus='✓ Compensação adequada (pCO₂ esp. '+pco2Exp.toFixed(1)+')';
+      else if(pco2<pco2Exp-2) compStatus='⚠ pCO₂ < esperado → Alcalose Respiratória concomitante';
+      else compStatus='⚠ pCO₂ > esperado → Acidose Respiratória concomitante';
+      lines.push('Comp: '+compStatus);
+      cls='calc-box show warn';
+    }
+  } else if(resp&&!metab){
+    if(acidose){
+      // Aguda: ΔHCO3 = 0,1 × ΔpCO2; Crônica: ΔHCO3 = 0,35 × ΔpCO2
+      const dpco2=pco2-40;
+      const bicAgudo=+(24+0.1*dpco2).toFixed(1);
+      const bicCronico=+(24+0.35*dpco2).toFixed(1);
+      if(Math.abs(bic-bicAgudo)<=2) lines.push('Comp: ✓ Aguda (HCO₃ esp. ~'+bicAgudo+')');
+      else if(Math.abs(bic-bicCronico)<=2) lines.push('Comp: ✓ Crônica (HCO₃ esp. ~'+bicCronico+')');
+      else if(bic>bicCronico+2) lines.push('Comp: ⚠ HCO₃ > esperado crônico → Alcalose Metabólica concomitante');
+      else lines.push('Comp: Fase de transição aguda→crônica (HCO₃ entre '+bicAgudo+' e '+bicCronico+')');
+      cls='calc-box show alert';
+    } else {
+      // Alcalose resp
+      const dpco2=40-pco2;
+      const bicAgudo=+(24-0.2*dpco2).toFixed(1);
+      const bicCronico=+(24-0.5*dpco2).toFixed(1);
+      if(Math.abs(bic-bicAgudo)<=2) lines.push('Comp: ✓ Aguda (HCO₃ esp. ~'+bicAgudo+')');
+      else if(Math.abs(bic-bicCronico)<=2) lines.push('Comp: ✓ Crônica (HCO₃ esp. ~'+bicCronico+')');
+      else lines.push('Comp: HCO₃ entre fase aguda ('+bicAgudo+') e crônica ('+bicCronico+')');
+      cls='calc-box show warn';
+    }
+  }
+
+  // ── Ânion Gap (se Na e Cl disponíveis)
+  if(!isNaN(na)&&!isNaN(cl)){
+    const ag=na-(cl+bic);
+    const albCorr=!isNaN(alb)?alb:4.0;
+    const agCorr=Math.round((ag+2.5*(4-albCorr))*10)/10;
+    const agElevado=agCorr>12;
+    lines.push('AG = '+ag.toFixed(1)+(!isNaN(alb)?' | AG corr alb = '+agCorr+' (alb '+alb+')':'')
+      +' → '+(agElevado?'⚠ ELEVADO (>12) — acidose AG alto':'Normal (≤12)'));
+
+    // Auto-preenche campo AG
+    if(agEl&&!agEl._manual){agEl.value=String(agCorr);}
+
+    // Delta-delta (só se acidose metabólica AG alto)
+    if(metab&&acidose&&agElevado){
+      const dd=(agCorr-12)/(24-bic);
+      let ddInterp='';
+      if(dd<0.4)      ddInterp='⚠ Delta-delta <0,4 — Acidose Metabólica mista (AG alto + AG normal)';
+      else if(dd<1.0) ddInterp='✓ Delta-delta 0,4–1,0 — Acidose Metabólica AG alto pura';
+      else if(dd<2.0) ddInterp='⚠ Delta-delta 1,0–2,0 — Acidose AG alto + Alcalose Metabólica';
+      else             ddInterp='⚠ Delta-delta >2,0 — Alcalose Metabólica preexistente';
+      lines.push('Delta-delta: '+dd.toFixed(2)+' → '+ddInterp);
+    }
+  } else if(agEl&&agEl.value.trim()){
+    const agM=parseFloat(agEl.value);
+    if(!isNaN(agM)) lines.push('AG (manual) = '+agM+' → '+(agM>12?'⚠ ELEVADO':'Normal'));
+  }
+
+  if(acidose||alcalose) cls='calc-box show '+(acidose?'alert':'warn');
+  if(normal&&prim.startsWith('Sem')) cls='calc-box show';
+
+  box.className=cls;
+  box.textContent=lines.join('\n');
+};
+
 // Relação Ur/Cr
 window.calcUrCr=function(){
   const ur=parseFloat(document.getElementById('f-ur')?.value||'');
@@ -919,7 +1046,7 @@ window.calcUrCr=function(){
   let cls='calc-box show', interp='';
   if(r<10)     {cls='calc-box show alert'; interp='↓ Baixa (<10) — sugestivo de doença hepática / desnutrição';}
   else if(r<20){cls='calc-box show'; interp='Normal (10–20)';}
-  else if(r<40){cls='calc-box show warn'; interp='↑ Elevada (20–40) — considerar hiperazotemiaante-renal ou aumento catabolismo';}
+  else if(r<40){cls='calc-box show warn'; interp='↑ Elevada (20–40) — considerar hiperazotemia pré-renal ou aumento catabolismo';}
   else         {cls='calc-box show alert'; interp='↑↑ Muito elevada (>40) — sugestivo de causa pré-renal acentuada';}
   box.className=cls;
   box.textContent='Ur/Cr = '+r+' · '+interp;
@@ -1350,7 +1477,7 @@ window.updResumo=function(){
 
   // BH / Gasometria
   const bh=[['BH 24h',gf('bh'),'mL'],['Diurese',gf('diur'),'mL/24h'],
-    ['pH',gf('ph'),''],['HCO₃',gf('bic'),'mEq/L'],['pCO₂',gf('pco2'),''],['Lactato',gf('lac'),'']].filter(x=>x[1]);
+    ['pH',gf('ph'),''],['HCO₃',gf('bic'),'mEq/L'],['pCO₂',gf('pco2'),'mmHg'],['AG',gf('ag'),''],['Lactato',gf('lac'),'']].filter(x=>x[1]);
   if(bh.length){
     lines.push('BH/GASO: '+bh.map(x=>x[0]+' '+x[1]+(x[2]?' '+x[2]:'')).join(' | '));
   }
