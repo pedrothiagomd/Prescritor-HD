@@ -149,6 +149,13 @@ td:last-child{border-right:none}
 .sb-wrap{display:flex;gap:5px;flex-wrap:wrap}
 .sb{padding:5px 13px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#999;font-family:inherit;transition:.12s}
 .sb:hover{background:#f5f5f3}
+.sex-btns{display:flex;gap:5px}
+.sex-btn{padding:5px 14px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#999;font-family:inherit;transition:.12s}
+.sex-btn:hover{background:#f5f5f3}
+.sex-btn.s-m{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.sex-btn.s-f{background:#fdf4ff;border-color:#e9d5ff;color:#7c3aed}
+.tfg-calc{font-family:‘DM Mono’,monospace;font-size:12px;color:#15803d;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:5px 9px;margin-top:2px;display:none}
+.tfg-calc.show{display:block}
 .sb.e-enf{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
 .sb.e-uti{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
 .sb.e-ps {background:#fffbeb;border-color:#fde68a;color:#b45309}
@@ -267,7 +274,14 @@ mark{background:#fef9c3;color:#854d0e;border-radius:2px;padding:0 1px}
       <div class="f"><label>Leito</label><input id="f-leito" placeholder="Ex: 12A, UTI-3, PS-1" oninput="updPrev()"/></div>
       <div class="f"><label>Iniciais</label><input id="f-nome" placeholder="Ex: J.S.O" oninput="updPrev()"/><div class="hint">Ponto entre iniciais</div></div>
       <div class="f" style="justify-content:flex-end;padding-top:14px"><div class="prev-box" id="prev">Leito — Iniciais</div><div class="hint" style="margin-top:3px">Prévia</div></div>
-      <div class="f"><label>Idade (anos)</label><input id="f-idade" type="number" placeholder="—"/></div>
+      <div class="f"><label>Idade (anos)</label><input id="f-idade" type="number" placeholder="—" oninput="calcTFG()"/></div>
+      <div class="f">
+        <label>Sexo</label>
+        <div class="sex-btns">
+          <button class="sex-btn" data-sx="M" onclick="pickSex('M')">♂ Masc.</button>
+          <button class="sex-btn" data-sx="F" onclick="pickSex('F')">♀ Fem.</button>
+        </div>
+      </div>
       <div class="f ff">
         <label>Setor</label>
         <div class="sb-wrap">
@@ -298,8 +312,12 @@ mark{background:#fef9c3;color:#854d0e;border-radius:2px;padding:0 1px}
     <div class="fsec-ttl e">Escórias Nitrogenadas</div>
     <div class="fg">
       <div class="f"><label>Uréia (mg/dL)</label><input id="f-ur" placeholder="—"/></div>
-      <div class="f"><label>Creatinina (mg/dL)</label><input id="f-cr" placeholder="—"/></div>
-      <div class="f"><label>TFG (mL/min)</label><input id="f-tfg" placeholder="CKD-EPI"/></div>
+      <div class="f"><label>Creatinina (mg/dL)</label><input id="f-cr" placeholder="—" oninput="calcTFG()"/></div>
+      <div class="f">
+        <label>TFG (mL/min)</label>
+        <input id="f-tfg" placeholder="CKD-EPI 2021" oninput="tfgManual()"/>
+        <div class="tfg-calc" id="tfg-calc">— mL/min · CKD-EPI 2021</div>
+      </div>
       <div class="f"><label>Ácido Úrico</label><input id="f-au" placeholder="—"/></div>
     </div>
   </div>
@@ -383,9 +401,9 @@ const db = getFirestore(initializeApp({
 }));
 
 const COL='pacientes';
-let pts=[],curTab='all',editId=null,curSec=null;
+let pts=[],curTab='all',editId=null,curSec=null,curSex=null;
 const SL={enf:'Enfermaria',uti:'UTI',ps:'P.Socorro',par:'Parecer'};
-const FIELDS=['leito','nome','idade','diag','hb','ht','leuc','bast','plaq','retic',
+const FIELDS=['leito','nome','idade','sexo','diag','hb','ht','leuc','bast','plaq','retic',
   'ur','cr','tfg','au','na','k','cl','ca','p','mg','bh','diur','ph','bic','pco2','lac',
   'pcr','alb','pth','vitd','ferr','tsat','falc','tgo','conduta','obs'];
 
@@ -450,7 +468,7 @@ window.render=function(){
   tb.innerHTML=list.map(p=>`<tr onclick="window.openEdit('${p.id}')">
     <td class="id-cell">
       <div class="leito"><span class="s-dot-sm sd-${p.setor||'enf'}"></span>${hl(p.leito,q)||'—'}</div>
-      <div class="iniciais">${hl(p.nome,q)||'—'}</div>
+      <div class="iniciais">${hl(p.nome,q)||'—'} ${p.sexo?'<span style="font-size:10px;color:#bbb;margin-left:3px">'+(p.sexo==='M'?'♂':'♀')+'</span>':''}</div>
       <div class="p-sub">${p.idade?p.idade+'a · ':''} ${SL[p.setor]||''}</div>
     </td>
     ${nc(p.hb,  {min:12,max:16,  aL:7,  aH:19})}
@@ -459,7 +477,12 @@ window.render=function(){
     ${nc(p.plaq,{min:150,max:400,aL:50, aH:900})}
     ${nc(p.ur,  {min:10,max:50,  aL:5,  aH:300})}
     ${nc(p.cr,  {min:0.5,max:1.3,aL:0,  aH:15})}
-    ${nc(p.tfg)}
+    ${(function(){
+      if(!p.tfg) return '<td class="n em">—</td>';
+      const t=parseFloat(p.tfg);
+      const c=isNaN(t)?'':t>=60?'ok':t>=30?'w':'al';
+      return '<td class="n '+c+'">'+p.tfg+'</td>';
+    })()}
     ${nc(p.na,  {min:136,max:145,aL:125,aH:155})}
     ${nc(p.k,   {min:3.5,max:5.0,aL:2.5,aH:6.5})}
     ${nc(p.ca,  {min:8.4,max:10, aL:7,  aH:12})}
@@ -507,14 +530,65 @@ window.ovClick=e=>{if(e.target===$('ov'))window.closeModal();};
 function clearF(){
   FIELDS.forEach(f=>{const e=$('f-'+f);if(e)e.value='';});
   document.querySelectorAll('.sb').forEach(b=>b.className='sb');
-  curSec=null;
+  document.querySelectorAll('.sex-btn').forEach(b=>b.className='sex-btn');
+  const tfgC=document.getElementById('tfg-calc');if(tfgC)tfgC.className='tfg-calc';
+  const tfgI=document.getElementById('f-tfg');if(tfgI)tfgI._manual=false;
+  curSec=null;curSex=null;
   const p=$('prev');if(p){p.textContent='Leito — Iniciais';p.style.color='#bbb';}
 }
 function fillF(p){
   FIELDS.forEach(f=>{const e=$('f-'+f);if(e&&p[f]!=null)e.value=p[f];});
   if(p.setor)window.pickSec(p.setor);
+  if(p.sexo)window.pickSex(p.sexo);
+  // mark tfg as manual if already stored so we don't overwrite
+  const tfgI=document.getElementById('f-tfg');
+  if(tfgI&&p.tfg)tfgI._manual=true;
   updPrev();
+  calcTFG();
 }
+// CKD-EPI 2021 (race-free)
+function ckdEpi2021(cr, age, sex) {
+  if(!cr||!age||!sex) return null;
+  const isFem = sex==='F';
+  const kappa = isFem ? 0.7 : 0.9;
+  const alpha = isFem ? -0.241 : -0.302;
+  const crK   = cr / kappa;
+  const term1 = Math.min(crK, 1) ** alpha;
+  const term2 = Math.max(crK, 1) ** -1.200;
+  const sexFac = isFem ? 1.012 : 1.0;
+  return Math.round(142 * term1 * term2 * (0.9938 ** age) * sexFac * 10) / 10;
+}
+
+window.pickSex=function(sx){
+  curSex=sx;
+  document.querySelectorAll('.sex-btn').forEach(b=>b.className='sex-btn'+(b.dataset.sx===sx?' s-'+sx.toLowerCase():''));
+  calcTFG();
+};
+
+window.calcTFG=function(){
+  const cr=parseFloat(document.getElementById('f-cr')?.value);
+  const age=parseFloat(document.getElementById('f-idade')?.value);
+  const el=document.getElementById('tfg-calc');
+  const inp=document.getElementById('f-tfg');
+  if(!el||!inp)return;
+  if(!isNaN(cr)&&cr>0&&!isNaN(age)&&age>0&&curSex){
+    const tfg=ckdEpi2021(cr,age,curSex);
+    if(tfg!==null){
+      const stage=tfg>=90?'G1':tfg>=60?'G2':tfg>=45?'G3a':tfg>=30?'G3b':tfg>=15?'G4':'G5';
+      el.textContent=tfg+' mL/min · '+stage+' (CKD-EPI 2021)';
+      el.className='tfg-calc show';
+      if(!inp._manual){inp.value=String(tfg);}
+      return;
+    }
+  }
+  el.className='tfg-calc';
+};
+
+window.tfgManual=function(){
+  const inp=document.getElementById('f-tfg');
+  if(inp)inp._manual=inp.value.trim()!=='';
+};
+
 window.pickSec=function(s){
   curSec=s;
   document.querySelectorAll('.sb').forEach(b=>b.className='sb'+(b.dataset.s===s?' e-'+s:''));
@@ -533,6 +607,7 @@ window.doSave=async function(){
   const btn=$('saveBtn');btn.disabled=true;btn.textContent='Salvando...';
   const d={setor:curSec,atualizadoEm:serverTimestamp()};
   FIELDS.forEach(f=>d[f]=gv(f));
+  d.sexo=curSex||'';
   try{
     if(editId){await setDoc(doc(db,COL,editId),d,{merge:true});toast('Atualizado ✓');}
     else{d.criadoEm=serverTimestamp();await addDoc(collection(db,COL),d);toast('Paciente adicionado ✓');}
