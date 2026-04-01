@@ -93,7 +93,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 .susp-reason-wrap input:focus{border-color:#991b1b}
 .susp-restore{font-size:11px;color:#991b1b;cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block}
 
-.summary-box{background:#fafaf8;border:1px solid #e8e8e5;border-radius:10px;padding:1rem 1.2rem;margin-top:.85rem;font-size:12px;color:#1a1a18;line-height:1.95;white-space:pre-wrap;font-family:‘DM Mono’,monospace}
+.summary-box{background:#fafaf8;border:1px solid #e8e8e5;border-radius:10px;padding:1rem 1.2rem;margin-top:.85rem;font-size:12px;color:#1a1a18;line-height:1.95;white-space:pre-wrap;font-family:'DM Mono',monospace}
 .action-row{display:flex;gap:7px;margin-top:.85rem;flex-wrap:wrap}
 .action-row button{font-size:13px;padding:7px 17px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#1a1a18;cursor:pointer;font-family:inherit}
 .action-row button:hover{border-color:#999;background:#f8f8f6}
@@ -120,7 +120,7 @@ h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:3px}
 <div class="wrap">
 <div style="margin-bottom:1rem">
   <h1>Prescritor dialítico — Novo paciente</h1>
-  <div class="subtitle">CHB Belém · v14 · KDIGO 2017/2024 · KDOQI · Dose sugerida por diretrizes</div>
+  <div class="subtitle">CHB Belém · v15 · KDIGO 2017/2024/2026 · KDOQI · Dose sugerida por diretrizes</div>
 </div>
 <div class="banner">Preencha os dados laboratoriais — as recomendações de dose são calculadas automaticamente com base nas diretrizes KDIGO/KDOQI.</div>
 
@@ -299,7 +299,7 @@ function getLabs(){
 // ── SUSPEND LOGIC ─────────────────────────────────────────────────────────────
 function toggleSuspend(id){
   var s=medState[id];
-  if(!s.ativo)return; // only suspend active meds
+  if(!s.ativo)return;
   s.suspended=!s.suspended;
   if(!s.suspended)s.suspReason='';
   buildMedGrid();
@@ -309,7 +309,7 @@ function suspReasonChange(id,val){
   medState[id].suspReason=val;
 }
 
-// ── getRecs — unchanged from original ────────────────────────────────────────
+// ── getRecs — KDIGO 2026 iron thresholds corrected ──────────────────────────
 function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   var r={};
   if(p===null){r.sevelamer={cor:'slate',dose:'—',freq:'—',detail:'Fósforo não informado.'};}
@@ -326,11 +326,22 @@ function getRecs(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
   else if(hb<=13){r.epo={cor:'amber',dose:'Reduzir 25%',freq:'3x/sem',detail:'Hb '+hb.toFixed(1)+': acima de 11,5 g/dL — reduzir ESA 25%. (KDIGO 2026 Rec 3.3.1)'};}
   else{r.epo={cor:'red',dose:'Suspender ou reduzir 50%',freq:'—',detail:'Hb '+hb.toFixed(1)+': > 13 g/dL — suspender ou reduzir 50%. Risco CV aumentado. (KDIGO 2026 Rec 3.3.1)'};}
 
-  if(ferritina===null||satFe===null){r.noripurum={cor:'slate',dose:'—',freq:'—',detail:'Ferritina e SatFe não informados. Meta: ferritina 200–700 ng/mL + TSAT 20–39%. (KDIGO 2026)'};}
-  else if(ferritina>700||satFe>=40){r.noripurum={cor:'amber',dose:'—',freq:'—',detail:'Ferritina '+ferritina+' / SatFe '+satFe+'%: acima do limite — suspender ferro EV. Reavaliar em 1–3 meses. (KDIGO 2026 PP 2.2)'};}
-  else if(ferritina>=200&&satFe>=20&&ferritina<=500&&satFe<=30){r.noripurum={cor:'green',dose:'—',freq:'200 mg quinzenal ou 100 mg 1x/semana',detail:'Ferritina '+ferritina+' / SatFe '+satFe+'%: manutenção ≈ 400 mg/mês. (KDIGO 2026 PP 2.1–2.2)'};}
-  else if(ferritina<=500&&satFe<=30){r.noripurum={cor:'green',dose:'—',freq:'1x/sem (200 mg) ou 2x/sem (100 mg)',detail:'Ferritina '+ferritina+' / SatFe '+satFe+'%: reposição — 200 mg/semana até meta. (KDIGO 2026 Rec 2.1)'};}
-  else{r.noripurum={cor:'slate',dose:'—',freq:'—',detail:'Ferritina '+ferritina+' / SatFe '+satFe+'%: perfil misto. Monitorar mensalmente. (KDIGO 2026)'};}
+  // ── NORIPURUM — KDIGO 2026: suspender se ferritina >700 OU TSAT ≥40% ──
+  if(ferritina===null||satFe===null){
+    r.noripurum={cor:'slate',dose:'—',freq:'—',detail:'Ferritina e SatFe não informados. Meta: ferritina 200–700 ng/mL + TSAT 20–39%. (KDIGO 2026)'};
+  } else if(ferritina>700||satFe>=40){
+    r.noripurum={cor:'red',dose:'SUSPENDER',freq:'—',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: acima do limite superior — SUSPENDER ferro EV. Reavaliar em 1–3 meses. (KDIGO 2026 PP 2.2)'};
+  } else if(ferritina<200&&satFe<20){
+    r.noripurum={cor:'green',dose:'—',freq:'1x/sem (200 mg) ou 2x/sem (100 mg)',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: deficiência sistêmica de ferro — reposição agressiva. 200 mg/sem até meta. (KDIGO 2026 Rec 2.1)'};
+  } else if(ferritina<200){
+    r.noripurum={cor:'green',dose:'—',freq:'1x/sem (200 mg) ou 2x/sem (100 mg)',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: estoque baixo — reposição. 200 mg/sem até ferritina ≥ 200. (KDIGO 2026 Rec 2.1)'};
+  } else if(satFe<20){
+    r.noripurum={cor:'green',dose:'—',freq:'1x/sem (200 mg) ou 2x/sem (100 mg)',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: eritropoiese restrita por ferro (TSAT < 20%) — reposição indicada. (KDIGO 2026 Rec 2.1)'};
+  } else if(ferritina>=200&&ferritina<=700&&satFe>=20&&satFe<40){
+    r.noripurum={cor:'green',dose:'—',freq:'200 mg quinzenal ou 100 mg 1x/semana',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: meta atingida — manutenção ≈ 200–400 mg/mês. (KDIGO 2026 PP 2.1–2.2)'};
+  } else {
+    r.noripurum={cor:'slate',dose:'—',freq:'—',detail:'Ferritina '+ferritina+' / TSAT '+satFe+'%: perfil atípico. Monitorar mensalmente. (KDIGO 2026)'};
+  }
 
   if(ca===null||p===null){r.calcio={cor:'slate',dose:'—',freq:'—',detail:'Ca e P necessários para recomendação.'};}
   else if(ca>=9.5){r.calcio={cor:'red',dose:'Contraindicado',freq:'—',detail:'Ca '+ca.toFixed(1)+': hipercalcemia — carbonato CONTRAINDICADO. (KDIGO 2017 2C)'};}
@@ -392,11 +403,14 @@ function buildPainelIntegrado(hb,p,ca,k,pth,pthStr,ps,ferritina,satFe,vitD){
     else if(hb<=13)items.push({pill:'EPO',cls:'pp-amber',txt:'Hb '+hb.toFixed(1)+' > 11,5 g/dL — reduzir ESA 25%. (KDIGO 2026)',med:'epo'});
     else items.push({pill:'EPO',cls:'pp-red',txt:'Hb '+hb.toFixed(1)+' > 13 g/dL — suspender ou reduzir 50%. Alto risco CV. (KDIGO 2026)',med:'epo'});
   }
+  // ── PAINEL NORIPURUM — KDIGO 2026 iron thresholds corrected ──
   if(ferritina!==null&&satFe!==null){
-    if(ferritina>700||satFe>=40)items.push({pill:'Noripurum',cls:'pp-amber',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — suspender. (KDIGO 2026)',med:'noripurum'});
-    else if(ferritina>=200&&satFe>=20&&ferritina<=500&&satFe<=30)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — meta OK. Manutenção ≈ 400 mg/mês.',med:'noripurum'});
-    else if(ferritina<=500&&satFe<=30)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — reposição 200 mg/sem.',med:'noripurum'});
-    else items.push({pill:'Noripurum',cls:'pp-slate',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — perfil misto. Avaliar.'});
+    if(ferritina>700||satFe>=40)items.push({pill:'Noripurum',cls:'pp-red',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — SUSPENDER ferro EV. (KDIGO 2026 PP 2.2)',med:'noripurum'});
+    else if(ferritina<200&&satFe<20)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — deficiência sistêmica. Reposição 200 mg/sem.',med:'noripurum'});
+    else if(ferritina<200)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — estoque baixo. Reposição até ferritina ≥ 200.',med:'noripurum'});
+    else if(satFe<20)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — eritropoiese restrita por ferro. Reposição indicada.',med:'noripurum'});
+    else if(ferritina>=200&&ferritina<=700&&satFe>=20&&satFe<40)items.push({pill:'Noripurum',cls:'pp-green',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — meta OK. Manutenção ≈ 200–400 mg/mês.',med:'noripurum'});
+    else items.push({pill:'Noripurum',cls:'pp-slate',txt:'Ferritina '+ferritina+' / TSAT '+satFe+'% — perfil atípico. Avaliar.'});
   }
   if(vitD!==null){
     if(vitD<10)items.push({pill:'Vit D',cls:'pp-amber',txt:'25-OH Vit D '+vitD+' — deficiência grave. 50.000 UI/sem × 12 sem.',med:'vitd'});
@@ -455,8 +469,8 @@ function renderLabPreview(){
     {label:'Potássio',val:k!==null?k.toFixed(1)+' mEq/L':'—',ref:'Meta 3,5–5,5',cl:k===null?'neutral':k>=6.5?'alert':k>=5.5?'warn':'ok'},
     {label:'PTH',val:pth!==null?pth+' pg/mL':'—',ref:'Meta 150–600',cl:pth===null?'neutral':pth>=600?'alert':pth<150?'warn':'ok'},
     {label:'25-OH Vit D',val:vitD!==null?vitD+' ng/mL':'—',ref:'Meta ≥ 30',cl:vitD===null?'neutral':vitD<20?'alert':vitD<30?'warn':'ok'},
-    {label:'Ferritina',val:ferritina!==null?ferritina+' ng/mL':'—',ref:'Meta 200–500',cl:ferritina===null?'neutral':ferritina<200||ferritina>800?'alert':ferritina>500?'warn':'ok'},
-    {label:'Sat. Transf.',val:satFe!==null?satFe+'%':'—',ref:'Meta 20–50%',cl:satFe===null?'neutral':satFe<20?'alert':satFe>50?'warn':'ok'},
+    {label:'Ferritina',val:ferritina!==null?ferritina+' ng/mL':'—',ref:'Meta 200–700',cl:ferritina===null?'neutral':(ferritina<200||ferritina>700)?'alert':ferritina>500?'warn':'ok'},
+    {label:'Sat. Transf.',val:satFe!==null?satFe+'%':'—',ref:'Meta 20–39%',cl:satFe===null?'neutral':(satFe<20||satFe>=40)?'alert':satFe>30?'warn':'ok'},
   ];
   var hasAny=Object.values(labs).some(function(v){return v!==null;});
   if(!hasAny){g('labPreview').innerHTML='';return;}
@@ -504,7 +518,6 @@ function buildMedGrid(){
     var cor=rec?rec.cor:'slate';
     var isSuspended=s.ativo&&s.suspended;
 
-    // Dose field
     var doseField=isNori?''
       :isPari
       ?'<input type="text" id="dose-'+m.id+'" placeholder="'+(rec?rec.dose:'—')+'" value="'+s.doseManual+'" style="font-size:12px;padding:4px 7px;border-radius:6px;border:1px solid #ddd;background:#fff;font-family:inherit" oninput="medState[\''+m.id+'\'].doseManual=this.value;medState[\''+m.id+'\'].dose=this.value">'
@@ -518,14 +531,12 @@ function buildMedGrid(){
     var freqLine=(!doseHasBr&&rec&&rec.freq&&rec.freq!=='—')?' · '+rec.freq:'';
     var recBox=(rec&&!recEmpty)?'<div class="med-calc-box '+cor+' med-full"><div style="font-weight:600;font-size:11px;margin-bottom:2px">Dose sugerida (KDIGO): '+rec.dose+freqLine+'</div><div style="font-size:11px;opacity:.85">'+rec.detail+'</div></div>':'';
 
-    // Suspend button — only show when med is active
     var suspBtn=s.ativo
       ?'<button class="susp-btn'+(isSuspended?' suspended':'')+'" onclick="toggleSuspend(\''+m.id+'\')" title="'+(isSuspended?'Reativar medicação':'Suspender medicação')+'">'+(isSuspended?'Suspensa':'Suspender')+'</button>'
       :'';
 
     var suspBadge=isSuspended?'<span class="susp-badge">SUSPENSA</span>':'';
 
-    // Suspend reason panel
     var suspPanel=isSuspended
       ?'<div class="susp-reason-wrap open"><label>Justificativa da suspensão</label><input type="text" placeholder="Ex: Hb > 13, infecção ativa, hipercalcemia..." value="'+s.suspReason+'" oninput="medState[\''+m.id+'\'].suspReason=this.value"><span class="susp-restore" onclick="toggleSuspend(\''+m.id+'\')">Reativar medicação</span></div>'
       :'';
@@ -688,8 +699,8 @@ function gerarResumo(){
   txt+='  Ureia pre:         '+(ureN!==null?Math.round(ureN)+' mg/dL':'—')+'\n';
   txt+='  PTH:               '+(pth!==null?pth+' pg/mL':'—')+(pth!==null&&pth>=600?' [ELEVADO]':pth!==null&&pth<150?' [suprimido]':'')+(pthData?' ('+pthData+')':'')+'\n';
   txt+='  25-OH Vit D:       '+(vitD!==null?vitD+' ng/mL':'nao informado')+(vitD!==null&&vitD<30?' [deficiente]':'')+'\n';
-  txt+='  Ferritina:         '+(ferritina!==null?ferritina+' ng/mL':'nao informado')+'\n';
-  txt+='  Sat. Transferrina: '+(satFe!==null?satFe+'%':'nao informado')+(satFe!==null&&satFe<20?' [baixo]':'')+'\n';
+  txt+='  Ferritina:         '+(ferritina!==null?ferritina+' ng/mL':'nao informado')+(ferritina!==null&&ferritina>700?' [ACIMA — suspender Fe EV]':ferritina!==null&&ferritina<200?' [baixo]':'')+'\n';
+  txt+='  Sat. Transferrina: '+(satFe!==null?satFe+'%':'nao informado')+(satFe!==null&&satFe>=40?' [ACIMA — suspender Fe EV]':satFe!==null&&satFe<20?' [baixo]':'')+'\n';
   txt+='\nANTICOAGULACAO\n';
   var esq=g('hepEsquema')?g('hepEsquema').value:'std';
   var psN=ps?parseFloat(ps):null;
